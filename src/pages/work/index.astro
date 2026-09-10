@@ -1,0 +1,83 @@
+---
+import Base from '../../layouts/Base.astro';
+import RunningHead from '../../components/RunningHead.astro';
+import Rule from '../../components/Rule.astro';
+import Contact from '../../components/Contact.astro';
+import SiteFooter from '../../components/SiteFooter.astro';
+import { Image } from 'astro:assets';
+import Platforms from '../../components/Platforms.astro';
+import { getProjects, projectIndex } from '../../lib/projects';
+import { buildWorkGraph } from '../../lib/schema';
+import { site } from '../../site.config';
+
+/**
+ * The catalogue. Deliberately a terse table rather than a second set of
+ * entries: the home page does the editorial selection, this does the index.
+ */
+const projects = await getProjects();
+const graph = buildWorkGraph({ modified: new Date().toISOString(), projects });
+const w = site.sections.work;
+const cols = site.sections.contents.columns;
+const WEIGHT_TOKEN = '00 kB';
+---
+
+<Base
+  graph={graph}
+  title={`Work | ${site.identity.name}`}
+  description={w.lede}
+>
+  <RunningHead />
+
+  <main id="main" class="page-inner">
+    <section class="section shell page-head" aria-labelledby="work-heading">
+      <p class="label">{w.label}</p>
+      <h1 class="page-head__title display display--xl" id="work-heading">{w.heading}</h1>
+      <p class="lede">{w.lede}</p>
+    </section>
+
+    <Rule />
+
+    <section class="section shell" aria-label="All projects">
+      <ol class="catalogue">
+        <li class="catalogue__head" aria-hidden="true">
+          <span class="label">{cols.folio}</span>
+          <span class="label">{cols.name}</span>
+          <span class="label">{cols.category}</span>
+          <span class="label">{cols.platforms}</span>
+          <span class="label">{cols.status}</span>
+        </li>
+        {
+          projects.map((project, i) => (
+            <li>
+              <a class="catalogue__row" href={`/work/${project.id}/`}>
+                <span class="catalogue__folio" aria-hidden="true">{projectIndex(i)}</span>
+                <span class="catalogue__name">
+                  {project.data.icon && (
+                    <Image class="appmark" src={project.data.icon} alt="" width={56} height={56} loading="lazy" />
+                  )}
+                  {project.data.title}
+                </span>
+                <span class="catalogue__meta">{project.data.category}</span>
+                <span class="catalogue__meta">
+                  <Platforms platforms={project.data.platforms} variant="marks" />
+                </span>
+                <span class="catalogue__meta catalogue__status">
+                  <span
+                    class="entry__mark"
+                    data-state={project.data.status === 'Prototype' ? 'quiet' : 'live'}
+                    aria-hidden="true"
+                  />
+                  {project.data.status}
+                </span>
+                <span class="catalogue__tagline">{project.data.tagline}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+  </main>
+
+  <Contact />
+  <SiteFooter weight={WEIGHT_TOKEN} />
+</Base>

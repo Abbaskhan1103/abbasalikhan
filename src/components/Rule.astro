@@ -1,0 +1,24 @@
+---
+/**
+ * A full-bleed 1px hairline with print registration ticks where it crosses the
+ * page's margin lines. Decorative: hidden from assistive technology, and it
+ * draws itself in from the left once when scrolled into view.
+ */
+interface Props {
+  /** Use the vermilion spot ink instead of a hairline. Opens the colophon. */
+  accent?: boolean;
+  /** Stagger position within a section, in rule order. */
+  index?: number;
+}
+
+const { accent = false, index = 0 } = Astro.props;
+const edges = ['left', 'inner-left', 'inner-right', 'right'] as const;
+---
+
+<div
+  class:list={['rule', 'bleed', 'reveal-rule', { 'colophon__rule': accent }]}
+  style={`--stagger:${index * 60}ms`}
+  aria-hidden="true"
+>
+  {edges.map((edge) => <span class="rule__tick" data-edge={edge}></span>)}
+</div>

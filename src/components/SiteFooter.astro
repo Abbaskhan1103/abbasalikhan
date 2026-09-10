@@ -1,0 +1,30 @@
+---
+import { site, fill } from '../site.config';
+
+interface Props {
+  /** Real gzipped page weight, written in after the build. */
+  weight: string;
+}
+
+const { weight } = Astro.props;
+const { sections, footer, theme } = site;
+const year = new Date().getFullYear();
+
+const press = [theme.background, '#171613', '#2a2823', '#a8a296', '#e8e4da', theme.accent];
+---
+
+<footer class="colophon">
+  <div class="shell">
+    <div class="footstrip">
+      <span class="crop" data-corner="left" aria-hidden="true"></span>
+      <span class="crop" data-corner="right" aria-hidden="true"></span>
+
+      <p class="label" style="margin:0;">{fill(footer.copyright, { year })}</p>
+      <p class="colophon__note">{fill(sections.colophon.note, { weight, year })}</p>
+
+      <span class="press" aria-hidden="true">
+        {press.map((swatch) => <span style={`background:${swatch}`}></span>)}
+      </span>
+    </div>
+  </div>
+</footer>

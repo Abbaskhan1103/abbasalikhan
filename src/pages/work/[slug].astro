@@ -1,0 +1,235 @@
+---
+import { render } from 'astro:content';
+import { Image, Picture } from 'astro:assets';
+import Platforms from '../../components/Platforms.astro';
+import Base from '../../layouts/Base.astro';
+import RunningHead from '../../components/RunningHead.astro';
+import Rule from '../../components/Rule.astro';
+import Contact from '../../components/Contact.astro';
+import SiteFooter from '../../components/SiteFooter.astro';
+import { getProjects, projectIndex, type Project } from '../../lib/projects';
+import { buildProjectGraph } from '../../lib/schema';
+import { site } from '../../site.config';
+
+/**
+ * One page per project. This is what a one-page site cannot do: give each
+ * project its own URL, its own structured data and its own social card, so it
+ * can rank for its own name rather than competing with the other two.
+ */
+export async function getStaticPaths() {
+  const projects = await getProjects();
+  return projects.map((project, index) => ({
+    params: { slug: project.id },
+    props: {
+      project,
+      index,
+      /** For the "next" link at the foot, wrapping round at the end. */
+      next: projects[(index + 1) % projects.length],
+      total: projects.length,
+    },
+  }));
+}
+
+interface Props {
+  project: Project;
+  index: number;
+  next: Project;
+  total: number;
+}
+
+const { project, index, next, total } = Astro.props;
+const data = project.data;
+const { Content } = await render(project);
+
+const graph = buildProjectGraph({ modified: new Date().toISOString(), project });
+const labels = site.sections.project;
+const meta = site.sections.entry.meta;
+const roleValue = site.sections.entry.roleValue;
+const folio = projectIndex(index);
+const spill = data.accent ?? site.theme.accent;
+const state = data.status === 'Prototype' ? 'quiet' : 'live';
+const WEIGHT_TOKEN = '00 kB';
+
+/** Falls back to the plain highlights when no expanded capabilities are set. */
+const capabilities =
+  data.capabilities.length > 0
+    ? data.capabilities
+    : data.highlights.map((title) => ({ title, detail: '' }));
+---
+
+<Base
+  graph={graph}
+  title={`${data.title} | ${site.identity.name}`}
+  description={data.summary}
+  ogImage={`/og/${project.id}.png`}
+  ogImageAlt={`${data.title}, ${data.tagline}. By ${site.identity.name}.`}
+>
+  <RunningHead />
+
+  <main id="main" class="page-inner">
+    <article>
+      <header class="section shell grid project-head">
+        <div class="project-head__body">
+          <p class="label">
+            <a class="link-inline" href="/work/">{labels.backToWork}</a>
+            <span aria-hidden="true"> / </span>
+            <span>{`${folio} of ${String(total).padStart(2, '0')}`}</span>
+          </p>
+
+          <div class="entry__titleline">
+            {
+              data.icon && (
+                <Image
+                  class="appmark appmark--xl"
+                  src={data.icon}
+                  alt=""
+                  width={128}
+                  height={128}
+                  loading="eager"
+                  fetchpriority="high"
+                />
+              )
+            }
+            <h1 class="project-head__title display display--xl">{data.title}</h1>
+          </div>
+          <p class="lede project-head__tagline">{data.tagline}</p>
+
+          <dl class="entry__meta">
+            <div class="entry__metarow">
+              <dt class="label">{meta.role}</dt>
+              <dd class="value">{roleValue}</dd>
+            </div>
+            {
+              data.platforms.length > 0 && (
+                <div class="entry__metarow">
+                  <dt class="label">{meta.platforms}</dt>
+                  <dd class="value"><Platforms platforms={data.platforms} /></dd>
+                </div>
+              )
+            }
+            <div class="entry__metarow">
+              <dt class="label">{meta.status}</dt>
+              <dd class="value entry__status">
+                <span class="entry__mark" data-state={state} aria-hidden="true"></span>
+                {data.status}
+              </dd>
+            </div>
+          </dl>
+
+          {
+            data.links.length > 0 && (
+              <p class="entry__links">
+                {data.links.map((link) => (
+                  <a class="link" href={link.href} target="_blank" rel="noopener">
+                    {`↗ ${link.label}`}
+                    <span class="visually-hidden">{` (${data.title})`}</span>
+                  </a>
+                ))}
+              </p>
+            )
+          }
+        </div>
+
+        {
+          data.cover && data.coverAlt && (
+            <div class="plate-stage" data-plate style={`--spill:${spill}`}>
+              <div class="plate">
+                <div class="plate__depth">
+                  <div class="plate__well" style="padding:0">
+                    <Picture
+                      class="plate__img"
+                      src={data.cover}
+                      alt={data.coverAlt}
+                      formats={['avif', 'webp']}
+                      widths={[480, 960]}
+                      sizes="(min-width: 1024px) 40vw, 100vw"
+                      loading="eager"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        }
+      </header>
+
+      {
+        data.problem && (
+          <>
+            <Rule index={0} />
+            <section class="section shell grid project-section" aria-labelledby="problem">
+              <h2 class="label project-section__label" id="problem">{labels.problem}</h2>
+              <div class="project-section__body">
+                <p class="prose prose--lead">{data.problem}</p>
+              </div>
+            </section>
+          </>
+        )
+      }
+
+      <Rule index={1} />
+      <section class="section shell grid project-section" aria-labelledby="what">
+        <h2 class="label project-section__label" id="what">{labels.capabilities}</h2>
+        <div class="project-section__body">
+          <div class="prose"><Content /></div>
+          <ul class="capabilities">
+            {
+              capabilities.map((capability) => (
+                <li class="capabilities__item">
+                  <span class="capabilities__title">{capability.title}</span>
+                  {capability.detail && <span class="capabilities__detail">{capability.detail}</span>}
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </section>
+
+      {
+        data.approach && (
+          <>
+            <Rule index={2} />
+            <section class="section shell grid project-section" aria-labelledby="approach">
+              <h2 class="label project-section__label" id="approach">{labels.approach}</h2>
+              <div class="project-section__body">
+                <p class="prose">{data.approach}</p>
+              </div>
+            </section>
+          </>
+        )
+      }
+
+      {
+        data.next && (
+          <>
+            <Rule index={3} />
+            <section class="section shell grid project-section" aria-labelledby="next">
+              <h2 class="label project-section__label" id="next">{labels.next}</h2>
+              <div class="project-section__body">
+                <p class="prose">{data.next}</p>
+              </div>
+            </section>
+          </>
+        )
+      }
+    </article>
+
+    {
+      next.id !== project.id && (
+        <>
+          <Rule index={4} />
+          <nav class="section shell project-next" aria-label="Next project">
+            <p class="label">{labels.nextProject}</p>
+            <a class="project-next__link display" href={`/work/${next.id}/`}>
+              {next.data.title}
+            </a>
+            <p class="lede">{next.data.tagline}</p>
+          </nav>
+        </>
+      )
+    }
+  </main>
+
+  <Contact />
+  <SiteFooter weight={WEIGHT_TOKEN} />
+</Base>

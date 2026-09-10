@@ -1,0 +1,70 @@
+---
+import { site } from '../site.config';
+import Rule from './Rule.astro';
+import Icon from './Icon.astro';
+
+/**
+ * The get-in-touch section. Sits at the foot of every page above the colophon.
+ *
+ * The address is set large as the closing moment. With no address configured it
+ * falls back to the first social profile, so the section is never empty.
+ */
+const { identity, socials, sections } = site;
+const c = sections.contact;
+
+const primary = identity.email
+  ? { label: identity.email, href: `mailto:${identity.email}`, mail: true }
+  : socials[0]
+    ? { label: socials[0].handle ?? socials[0].label, href: socials[0].href, mail: false }
+    : null;
+
+const secondary = identity.email ? socials : socials.slice(1);
+---
+
+<Rule accent />
+
+<section class="section shell grid contact" id="contact" aria-labelledby="contact-heading">
+  <div class="contact__intro">
+    <h2 class="label contact__label" id="contact-heading">
+      <Icon name="mail" />
+      {c.label}
+    </h2>
+    <p class="contact__heading display">{c.heading}</p>
+    <p class="lede">{c.lede}</p>
+  </div>
+
+  <div class="contact__body">
+    {
+      primary && (
+        <a
+          class="contact__line display"
+          href={primary.href}
+          rel={primary.mail ? undefined : 'me noopener'}
+          target={primary.mail ? undefined : '_blank'}
+        >
+          {primary.label}
+        </a>
+      )
+    }
+
+    {
+      secondary.length > 0 && (
+        <ul class="contact__socials">
+          {secondary.map((social) => (
+            /* rel="me" makes the reciprocity machine-readable, which is what
+               turns a one-way sameAs claim into corroboration. */
+            <li>
+              <a class="link contact__social" href={social.href} target="_blank" rel="noopener me">
+                {social.label === 'LinkedIn' && <Icon name="linkedin" />}
+                {`${identity.shortName} on ${social.label}`}
+                <Icon name="arrow-up-right" class="link__arrow" />
+              </a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+
+    <p class="contact__note">{c.note}</p>
+  </div>
+</section>

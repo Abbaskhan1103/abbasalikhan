@@ -1,0 +1,11 @@
+/* TEAM */
+  Maker: Abbas Ali Khan
+  Site: https://abbasalikhan.com
+  Location: Melbourne, Victoria, Australia
+
+/* SITE */
+  Standards: HTML5, CSS Custom Properties, JSON-LD
+  Components: None. No framework at runtime.
+  Typefaces: Bodoni Moda, Archivo. Self-hosted.
+  Analytics: None.
+  Third-party requests: None.

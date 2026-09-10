@@ -1,0 +1,40 @@
+---
+import Icon from './Icon.astro';
+import { platformIcon } from '../lib/icons';
+
+interface Props {
+  platforms: readonly string[];
+  /** `marks` shows icons only; `full` shows icon plus name. */
+  variant?: 'marks' | 'full';
+}
+
+const { platforms, variant = 'full' } = Astro.props;
+
+/**
+ * Several platforms share one mark, so a project on iOS and iPadOS would
+ * otherwise show the same apple twice. In `marks` mode the icons are
+ * de-duplicated and the full list stays available to screen readers.
+ */
+const marks = [...new Set(platforms.map(platformIcon).filter(Boolean))];
+---
+
+{
+  variant === 'marks' ? (
+    <span class="platforms platforms--marks">
+      {marks.map((name) => name && <Icon name={name} />)}
+      <span class="visually-hidden">{platforms.join(', ')}</span>
+    </span>
+  ) : (
+    <span class="platforms">
+      {platforms.map((platform) => {
+        const icon = platformIcon(platform);
+        return (
+          <span class="platforms__item">
+            {icon && <Icon name={icon} />}
+            {platform}
+          </span>
+        );
+      })}
+    </span>
+  )
+}

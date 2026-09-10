@@ -1,0 +1,122 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import RunningHead from '../components/RunningHead.astro';
+import Rule from '../components/Rule.astro';
+import Contact from '../components/Contact.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import Icon from '../components/Icon.astro';
+import { skillIcon } from '../lib/icons';
+import { buildAboutGraph } from '../lib/schema';
+import { site } from '../site.config';
+
+const graph = buildAboutGraph({ modified: new Date().toISOString() });
+const { identity, sections } = site;
+const about = sections.about;
+const practice = sections.practice;
+const skills = sections.skills;
+const portrait = identity.portrait;
+const WEIGHT_TOKEN = '00 kB';
+---
+
+<Base
+  graph={graph}
+  title={`About | ${identity.name}`}
+  description={about.lede}
+>
+  <RunningHead />
+
+  <main id="main" class="page-inner">
+    <section class="section shell grid page-head page-head--split" aria-labelledby="about-heading">
+      <div class="page-head__body">
+        <p class="label">{about.label}</p>
+        {/*
+          The statement IS the heading here. A display-sized "About Abbas Ali
+          Khan" sat directly under an "ABOUT" label and repeated both it and the
+          masthead, so it has gone. The page still needs exactly one h1, and this
+          one carries the role and the city, which is more use than the name
+          repeated a fourth time.
+        */}
+        <h1 class="lede page-head__statement" id="about-heading">{about.lede}</h1>
+      </div>
+
+      {/*
+        `sizes` describes the real box: the portrait takes 4 of 12 columns from
+        1024px up, which measures about 26vw once the page padding is out. An
+        overstated value wastes bytes; an understated one serves a soft image to
+        a retina screen.
+      */}
+      {
+        portrait.image && (
+          <figure class="portrait">
+            <Image
+              src={portrait.image}
+              alt={portrait.alt}
+              widths={[420, 720, 1000]}
+              sizes="(min-width: 1024px) 26vw, (min-width: 768px) 42vw, 100vw"
+              format="webp"
+              quality={82}
+              loading="eager"
+              fetchpriority="high"
+            />
+            <figcaption class="plate__caption">
+              {identity.shortName}, {identity.location.label}
+            </figcaption>
+          </figure>
+        )
+      }
+    </section>
+
+    <Rule index={0} />
+
+    <section class="section shell grid practice" aria-labelledby="practice-heading">
+      <div class="practice__marginalia">
+        <h2 class="label" id="practice-heading" style="margin-bottom: var(--s2);">
+          {practice.label}
+        </h2>
+        {
+          practice.marginalia.map((note, i) => (
+            <p class="practice__note">
+              <span class="label" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+              <span>{note}</span>
+            </p>
+          ))
+        }
+      </div>
+
+      <div class="practice__body">
+        {practice.paragraphs.map((paragraph) => <p class="prose">{paragraph}</p>)}
+      </div>
+    </section>
+
+    {/*
+      Renders only once `sections.skills.groups` has entries. Set as hairline
+      rows rather than bars or logos: same information, and it reads as a
+      colophon instead of a template.
+    */}
+    {
+      skills.groups.length > 0 && (
+        <>
+          <Rule index={1} />
+          <section class="section shell grid skills" aria-labelledby="skills-heading">
+            <h2 class="label skills__label" id="skills-heading">{skills.label}</h2>
+            <dl class="skills__list">
+              {skills.groups.map((group) => (
+                <div class="skills__row">
+                  <dt class="label skills__term">
+                    {skillIcon(group.label) && <Icon name={skillIcon(group.label)!} />}
+                    {group.label}
+                  </dt>
+                  <dd class="value">{group.items.join(', ')}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        </>
+      )
+    }
+  </main>
+
+  <Contact />
+  <SiteFooter weight={WEIGHT_TOKEN} />
+</Base>

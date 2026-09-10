@@ -1,0 +1,38 @@
+---
+import Base from '../layouts/Base.astro';
+import RunningHead from '../components/RunningHead.astro';
+import { site } from '../site.config';
+import { buildPlainGraph } from '../lib/schema';
+
+/**
+ * Where a submission lands when JavaScript is unavailable. With script running,
+ * the form reports back in place and nobody ever gets here.
+ */
+const title = `Thanks | ${site.identity.name}`;
+const c = site.crm.copy;
+
+const graph = buildPlainGraph({
+  modified: new Date().toISOString(),
+  path: '/thanks/',
+  name: 'Thanks',
+});
+---
+
+<Base graph={graph} title={title} description="Subscription confirmed." noindex>
+  <RunningHead />
+  <main
+    id="main"
+    class="shell"
+    style="min-height:70svh; display:grid; align-content:center; gap:var(--s3); padding-block:var(--s6);"
+  >
+    <p class="label">{c.label}</p>
+    <h1
+      class="display display--xl"
+      style="font-size:var(--t-section); line-height:1; letter-spacing:-0.018em;"
+    >
+      {c.success}
+    </h1>
+    <p class="lede">{c.note}</p>
+    <p><a class="link" href="/">↓ Back to the index</a></p>
+  </main>
+</Base>

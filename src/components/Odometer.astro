@@ -1,0 +1,26 @@
+---
+import { projectIndex } from '../lib/projects';
+
+interface Props {
+  count: number;
+}
+
+const { count } = Astro.props;
+const folios = Array.from({ length: count }, (_, i) => projectIndex(i));
+---
+
+{/*
+  A single Didone numeral debossed into the left margin, rolling as each entry
+  centres, with one vermilion hairline tying the numeral to the entry it names.
+  Entirely decorative: every entry also carries "Entry N of M" as real text, so
+  the ordinal never lives only here. Desktop only, and never wired up under
+  reduced motion.
+*/}
+<div class="odometer" aria-hidden="true" data-odometer data-visible="false">
+  <div class="odometer__window">
+    <div class="odometer__reel" data-reel>
+      {folios.map((folio) => <span data-folio={folio}></span>)}
+    </div>
+    <span class="odometer__tie" data-tie></span>
+  </div>
+</div>

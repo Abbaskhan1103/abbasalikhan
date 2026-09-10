@@ -1,0 +1,63 @@
+---
+import { site } from '../site.config';
+
+const { identity, runningHead, nav, blog } = site;
+
+/** A link marked `when: 'blog'` only appears once the blog is switched on. */
+const links = nav.filter((link) => link.when !== 'blog' || blog.enabled);
+
+/** Current path, trailing slash normalised, for marking the active link. */
+const here = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const isActive = (href: string) => {
+  const target = href.replace(/\/+$/, '') || '/';
+  return target === '/' ? here === '/' : here === target || here.startsWith(`${target}/`);
+};
+
+/**
+ * Rendered with the build-time Melbourne clock so it is never blank, then
+ * corrected on load. It shows Melbourne time wherever the visitor is, because
+ * the point of it is where he is.
+ */
+const initialTime = new Intl.DateTimeFormat('en-AU', {
+  timeZone: identity.location.timezone,
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false,
+  timeZoneName: 'short',
+}).format(new Date());
+---
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="runhead">
+  <div class="runhead__inner">
+    <a class="runhead__home" href="/">
+      <span class="label runhead__name--full">{identity.name}</span>
+      <span class="label runhead__name--short">{runningHead.short}</span>
+    </a>
+
+    <nav class="runhead__nav" aria-label="Primary">
+      <ul>
+        {
+          links.map((link) => (
+            <li>
+              <a
+                class="runhead__link label"
+                href={link.href}
+                aria-current={isActive(link.href) ? 'page' : undefined}
+              >
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <p class="runhead__clock">
+      <span class="runhead__live" aria-hidden="true"></span>
+      <span data-clock>{initialTime}</span>
+      <span class="visually-hidden">Local time in {identity.location.city}</span>
+    </p>
+  </div>
+</header>

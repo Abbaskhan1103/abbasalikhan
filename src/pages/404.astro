@@ -1,0 +1,29 @@
+---
+import Base from '../layouts/Base.astro';
+import RunningHead from '../components/RunningHead.astro';
+import { site } from '../site.config';
+import { buildPlainGraph } from '../lib/schema';
+
+const title = `Page not found | ${site.identity.name}`;
+
+const graph = buildPlainGraph({
+  modified: new Date().toISOString(),
+  path: '/404/',
+  name: 'Page not found',
+});
+---
+
+<Base graph={graph} title={title} description="That page does not exist." noindex>
+  <RunningHead />
+  <main id="main" class="shell" style="min-height:70svh; display:grid; align-content:center; gap:var(--s3); padding-block:var(--s6);">
+    <p class="label">Error 404</p>
+    <h1 class="display display--xl" style="font-size:var(--t-section); line-height:1; letter-spacing:-0.018em;">
+      No such page.
+    </h1>
+    <p class="lede">
+      The address is wrong, or the page has been retired. The whole site is one
+      page, so there is only one place to go.
+    </p>
+    <p><a class="link" href="/">↓ Back to the index</a></p>
+  </main>
+</Base>

@@ -1,0 +1,66 @@
+---
+/**
+ * A footnote marker on a term, in the manner of an editorial page: a small
+ * squared `i` that opens a short definition.
+ *
+ * It works with no JavaScript at all. Hover and keyboard focus open the note
+ * through CSS alone, so the only thing script adds is a click toggle for touch
+ * devices and Escape to dismiss.
+ *
+ * HOST REQUIREMENT: the note is positioned against the nearest positioned block
+ * ancestor, not against this inline span, so that it cannot start mid-sentence
+ * and run off a narrow screen. Whatever element wraps this needs
+ * `position: relative`.
+ */
+interface Props {
+  /** The full line of copy. */
+  value: string;
+  /** The term inside it to annotate. */
+  term: string;
+  /** Screen-reader label for the marker. */
+  label: string;
+  /** The definition itself. */
+  body: string;
+  /** Unique within the page, used to wire aria-controls to the panel. */
+  id: string;
+}
+
+const { value, term, label, body, id } = Astro.props;
+
+/**
+ * Split the line around the term. If the term is not present the marker is
+ * skipped and the line renders untouched, so a typo in the config degrades to
+ * plain copy rather than breaking the page.
+ */
+const at = value.indexOf(term);
+const found = at !== -1;
+const before = found ? value.slice(0, at) : value;
+const after = found ? value.slice(at + term.length) : '';
+---
+
+{
+  found ? (
+    <>
+      {before}
+      <span class="gloss">
+        <dfn class="gloss__term">{term}</dfn>
+        <button
+          class="gloss__mark"
+          type="button"
+          aria-expanded="false"
+          aria-controls={id}
+          data-gloss-mark
+        >
+          <span aria-hidden="true">i</span>
+          <span class="visually-hidden">{label}</span>
+        </button>
+        <span class="gloss__panel" id={id} role="note" data-gloss-panel>
+          {body}
+        </span>
+      </span>
+      {after}
+    </>
+  ) : (
+    value
+  )
+}

@@ -1,0 +1,63 @@
+---
+import { site, fill } from '../site.config';
+import Gloss from './Gloss.astro';
+
+interface Props {
+  /** Number of live projects, so the standfirst and index link stay truthful. */
+  count: number;
+}
+
+const { count } = Astro.props;
+const { identity, sections } = site;
+const wall = sections.titleWall;
+
+const words = ['None', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven'];
+const counted = words[count] ?? String(count);
+const range = `01—${String(count).padStart(2, '0')}`;
+---
+
+<section class="wall shell grid" aria-labelledby="masthead">
+  <div class="wall__credits grid" style="grid-column: 1 / -1;">
+    {
+      wall.credits.map((credit) => (
+        <div class="wall__credit">
+          <span class="label">{credit.label}</span>
+          <span class="value">{credit.value}</span>
+        </div>
+      ))
+    }
+  </div>
+
+  <div class="wall__body grid" style="grid-column: 1 / -1;">
+    <h1 class="wall__name display display--xl" id="masthead">
+      {identity.nameLines.map((line) => <span>{line}</span>)}
+    </h1>
+
+    <div class="wall__aside">
+      <p class="lede">{fill(wall.standfirst, { count: counted })}</p>
+      <div class="wall__facts">
+        {
+          wall.facts.map((fact, i) => (
+            <p class="wall__fact">
+              {fact.gloss ? (
+                <Gloss
+                  value={fact.value}
+                  term={fact.gloss.term}
+                  label={fact.gloss.label}
+                  body={fact.gloss.body}
+                  id={`gloss-${i}`}
+                />
+              ) : (
+                fact.value
+              )}
+            </p>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="wall__foot" style="grid-column: 1 / -1;">
+    <a class="link" href="#contents">{fill(wall.indexLink, { range })}</a>
+  </div>
+</section>

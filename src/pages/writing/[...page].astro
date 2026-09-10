@@ -1,0 +1,78 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import RunningHead from '../../components/RunningHead.astro';
+import Rule from '../../components/Rule.astro';
+import Contact from '../../components/Contact.astro';
+import SiteFooter from '../../components/SiteFooter.astro';
+import { buildPlainGraph } from '../../lib/schema';
+import { site } from '../../site.config';
+
+/**
+ * The writing index, at /writing/.
+ *
+ * A rest parameter resolving to `undefined` is what lets this page be gated:
+ * while `site.blog.enabled` is false no paths are returned, so /writing/ is
+ * never built, never enters the sitemap, and never appears in the nav.
+ */
+export async function getStaticPaths() {
+  if (!site.blog.enabled) return [];
+  return [{ params: { page: undefined } }];
+}
+
+const blog = site.blog;
+const posts = (await getCollection('writing', ({ data }) => data.draft !== true)).sort(
+  (a, b) => b.data.published.valueOf() - a.data.published.valueOf(),
+);
+
+const graph = buildPlainGraph({
+  modified: new Date().toISOString(),
+  path: '/writing/',
+  name: `Writing by ${site.identity.name}`,
+});
+const WEIGHT_TOKEN = '00 kB';
+
+const dateline = (d: Date) =>
+  new Intl.DateTimeFormat('en-AU', { day: 'numeric', month: 'long', year: 'numeric' }).format(d);
+---
+
+<Base graph={graph} title={`Writing | ${site.identity.name}`} description={blog.lede}>
+  <RunningHead />
+
+  <main id="main" class="page-inner">
+    <section class="section shell page-head" aria-labelledby="writing-heading">
+      <p class="label">{blog.label}</p>
+      <h1 class="page-head__title display display--xl" id="writing-heading">{blog.heading}</h1>
+      <p class="lede">{blog.lede}</p>
+    </section>
+
+    <Rule />
+
+    <section class="section shell" aria-label="All posts">
+      {
+        posts.length === 0 ? (
+          <p class="prose">Nothing published yet.</p>
+        ) : (
+          <ol class="catalogue">
+            {posts.map((post) => (
+              <li>
+                <a class="catalogue__row catalogue__row--post" href={`/writing/${post.id}/`}>
+                  <span class="catalogue__name">{post.data.title}</span>
+                  <span class="catalogue__meta">
+                    <time datetime={post.data.published.toISOString()}>
+                      {dateline(post.data.published)}
+                    </time>
+                  </span>
+                  <span class="catalogue__tagline">{post.data.summary}</span>
+                </a>
+              </li>
+            ))}
+          </ol>
+        )
+      }
+    </section>
+  </main>
+
+  <Contact />
+  <SiteFooter weight={WEIGHT_TOKEN} />
+</Base>

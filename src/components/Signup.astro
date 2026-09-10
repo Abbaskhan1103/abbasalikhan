@@ -1,0 +1,158 @@
+---
+import { site } from '../site.config';
+import { HONEYPOT_FIELD, TIMESTAMP_FIELD } from '../lib/crm/validate';
+
+interface Props {
+  /**
+   * Where this particular form lives, so signups can be told apart later.
+   * Convention: `newsletter`, `contact`, `blog:<slug>`, `project:<slug>`.
+   */
+  source?: string;
+}
+
+const { crm } = site;
+const { source = crm.source } = Astro.props;
+const c = crm.copy;
+
+/**
+ * Stamped at build time. Combined with the minimum fill time on the server this
+ * rejects the crude bots that post the instant they see a form, without asking a
+ * single real person to prove anything.
+ */
+const renderedAt = Date.now();
+---
+
+{
+  crm.enabled && (
+    <section class="section shell grid signup" id="newsletter" aria-labelledby="newsletter-heading">
+      <div class="signup__intro">
+        <h2 class="label" id="newsletter-heading">{c.label}</h2>
+        <p class="signup__heading display">{c.heading}</p>
+        <p class="lede">{c.lede}</p>
+      </div>
+
+      <form
+        class="signup__form"
+        method="post"
+        action={crm.endpoint}
+        data-signup
+        novalidate
+      >
+        <input type="hidden" name="source" value={source} />
+        <input type="hidden" name="pageUrl" value={Astro.url.pathname} />
+        <input type="hidden" name={TIMESTAMP_FIELD} value={String(renderedAt)} />
+
+        {/*
+          The honeypot. Hidden from sight and from assistive technology, and
+          marked not to autofill, so no person is ever shown it. Anything that
+          fills it in is not a person.
+        */}
+        <div class="signup__trap" aria-hidden="true">
+          <label for="company-website">Company website</label>
+          <input
+            id="company-website"
+            type="text"
+            name={HONEYPOT_FIELD}
+            tabindex="-1"
+            autocomplete="off"
+           value=""
+          />
+        </div>
+
+        <div class="signup__row">
+          <label class="visually-hidden" for="signup-email">{c.emailLabel}</label>
+          <input
+            class="signup__input"
+            id="signup-email"
+            type="email"
+            name="email"
+            placeholder={c.placeholder}
+            autocomplete="email"
+            inputmode="email"
+            spellcheck="false"
+            required
+          />
+          <button class="signup__submit link" type="submit">
+            {`↗ ${c.submit}`}
+          </button>
+        </div>
+
+        <p class="signup__note">{c.note}</p>
+
+        {/*
+          Feedback lands here. It is a live region so the result is announced
+          rather than only shown, and it carries the messages as data attributes
+          so the script never hardcodes copy that belongs in the config.
+        */}
+        <p
+          class="signup__status"
+          role="status"
+          aria-live="polite"
+          data-status
+          data-msg-success={c.success}
+          data-msg-already={c.already}
+          data-msg-invalid={c.invalid}
+          data-msg-error={c.error}
+        />
+      </form>
+
+      {/*
+        Progressive enhancement, and nothing more. Without this script the form
+        is an ordinary POST that lands on the thanks page; with it, the result is
+        reported in place. `is:inline` keeps it out of the bundle entirely when
+        capture is switched off, and the build hashes it into the CSP.
+      */}
+      <script is:inline>
+        (() => {
+          const form = document.querySelector('[data-signup]');
+          if (!form) return;
+          const status = form.querySelector('[data-status]');
+          const field = form.querySelector('input[name="email"]');
+          const say = (key, state) => {
+            status.textContent = status.dataset['msg' + key] || '';
+            status.dataset.state = state;
+          };
+
+          form.addEventListener('submit', async (event) => {
+            // A plausibility check only. The server validates properly.
+            const value = (field.value || '').trim();
+            if (!value.includes('@') || value.length < 5) {
+              event.preventDefault();
+              say('Invalid', 'err');
+              field.focus();
+              return;
+            }
+
+            event.preventDefault();
+            form.dataset.busy = '';
+            status.textContent = '';
+            delete status.dataset.state;
+
+            try {
+              const response = await fetch(form.action, {
+                method: 'POST',
+                headers: { 'content-type': 'application/json', accept: 'application/json' },
+                body: JSON.stringify(Object.fromEntries(new FormData(form))),
+              });
+              const result = await response.json();
+              if (result.ok) {
+                say(result.status === 'already' ? 'Already' : 'Success', 'ok');
+                form.reset();
+              } else {
+                say(result.status === 'invalid' ? 'Invalid' : 'Error', 'err');
+              }
+            } catch {
+              // The network, not the visitor, failed. Hand the form back to the
+              // browser so a plain POST still gets the signup through.
+              form.removeAttribute('data-signup');
+              form.submit();
+              return;
+            } finally {
+              delete form.dataset.busy;
+            }
+          });
+        })();
+      </script>
+    </section>
+  )
+}

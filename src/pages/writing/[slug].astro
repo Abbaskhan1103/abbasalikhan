@@ -1,0 +1,68 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import RunningHead from '../../components/RunningHead.astro';
+import Rule from '../../components/Rule.astro';
+import Contact from '../../components/Contact.astro';
+import SiteFooter from '../../components/SiteFooter.astro';
+import { buildPlainGraph } from '../../lib/schema';
+import { site } from '../../site.config';
+
+/**
+ * Post pages. While `site.blog.enabled` is false this returns no paths at all,
+ * so nothing is built and /writing/<slug>/ does not exist. Switching the flag
+ * on is the only change needed.
+ */
+export async function getStaticPaths() {
+  if (!site.blog.enabled) return [];
+  const posts = await getCollection('writing', ({ data }) => data.draft !== true);
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+interface Props {
+  post: CollectionEntry<'writing'>;
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const graph = buildPlainGraph({
+  modified: (post.data.updated ?? post.data.published).toISOString(),
+  path: `/writing/${post.id}/`,
+  name: post.data.title,
+});
+const WEIGHT_TOKEN = '00 kB';
+
+const dateline = (d: Date) =>
+  new Intl.DateTimeFormat('en-AU', { day: 'numeric', month: 'long', year: 'numeric' }).format(d);
+---
+
+<Base graph={graph} title={`${post.data.title} | ${site.identity.name}`} description={post.data.summary}>
+  <RunningHead />
+
+  <main id="main" class="page-inner">
+    <article>
+      <header class="section shell page-head">
+        <p class="label">
+          <a class="link-inline" href="/writing/">{site.blog.label}</a>
+        </p>
+        <h1 class="page-head__title display display--xl">{post.data.title}</h1>
+        <p class="lede">{post.data.summary}</p>
+        <p class="label">
+          <time datetime={post.data.published.toISOString()}>{dateline(post.data.published)}</time>
+          {post.data.topics.length > 0 && <span> · {post.data.topics.join(', ')}</span>}
+        </p>
+      </header>
+
+      <Rule />
+
+      <div class="section shell grid project-section">
+        <div class="project-section__body prose post">
+          <Content />
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <Contact />
+  <SiteFooter weight={WEIGHT_TOKEN} />
+</Base>

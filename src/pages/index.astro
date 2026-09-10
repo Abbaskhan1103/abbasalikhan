@@ -1,0 +1,60 @@
+---
+import Base from '../layouts/Base.astro';
+import RunningHead from '../components/RunningHead.astro';
+import TitleWall from '../components/TitleWall.astro';
+import Entry from '../components/Entry.astro';
+import Rule from '../components/Rule.astro';
+import Contact from '../components/Contact.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import Odometer from '../components/Odometer.astro';
+import Signup from '../components/Signup.astro';
+import { getProjects } from '../lib/projects';
+import { buildHomeGraph } from '../lib/schema';
+import { site } from '../site.config';
+
+/**
+ * The entity home. The Person `@id` is anchored to this URL and must never move
+ * to a subpage, or every profile link and citation pointing here is orphaned.
+ */
+const projects = await getProjects();
+const graph = buildHomeGraph({ modified: new Date().toISOString(), projects });
+
+/** Replaced after the build with the real gzipped weight of this page. */
+const WEIGHT_TOKEN = '00 kB';
+const about = site.sections.about;
+---
+
+<Base graph={graph} ogType="profile">
+  <RunningHead />
+  <Odometer count={projects.length} />
+
+  <main id="main">
+    <TitleWall count={projects.length} />
+
+    <section aria-labelledby="work-heading">
+      <h2 class="visually-hidden" id="work-heading">Apps by {site.identity.name}</h2>
+      {
+        projects.map((project, i) => (
+          <Entry project={project} position={i} total={projects.length} />
+        ))
+      }
+    </section>
+
+    <Rule />
+
+    <section class="section shell grid teaser" aria-labelledby="about-teaser">
+      <div class="teaser__body">
+        <h2 class="label" id="about-teaser">{about.label}</h2>
+        <p class="teaser__heading display">{about.lede}</p>
+        <p class="teaser__link">
+          <a class="link" href="/about/">↗ More about how I work</a>
+        </p>
+      </div>
+    </section>
+
+    <Signup />
+  </main>
+
+  <Contact />
+  <SiteFooter weight={WEIGHT_TOKEN} />
+</Base>

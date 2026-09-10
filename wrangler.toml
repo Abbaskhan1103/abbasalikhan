@@ -1,0 +1,11 @@
+# Cloudflare Pages configuration.
+#
+# `pages_build_output_dir` is what makes this a Pages project rather than a
+# Worker, so `wrangler pages deploy` needs no flags.
+#
+# Functions are picked up from the top-level /functions directory automatically.
+# They are inert until site.crm.enabled is true, and public/_routes.json keeps
+# every static request on the free unlimited path so only /api/* invokes compute.
+name = "abbasalikhan"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-09-10"

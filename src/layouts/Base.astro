@@ -1,0 +1,381 @@
+---
+import { Font } from 'astro:assets';
+import { site, absoluteUrl } from '../site.config';
+import { serialiseGraph } from '../lib/schema';
+import '../styles/main.css';
+
+interface Props {
+  /** Full <title> for this page. */
+  title?: string;
+  description?: string;
+  /** The page's JSON-LD graph, built by src/lib/schema.ts. */
+  graph: unknown;
+  /** Keep this page out of the index. Used by /404/ and /thanks/. */
+  noindex?: boolean;
+  /** Social card for this page. Defaults to the site card. */
+  ogImage?: string;
+  ogImageAlt?: string;
+  /** og:type. 'profile' on the entity home, 'website' elsewhere. */
+  ogType?: string;
+}
+
+const {
+  title = site.seo.title,
+  description = site.seo.description,
+  graph,
+  noindex = false,
+  ogImage: ogImagePath = site.seo.ogImage,
+  ogImageAlt = site.seo.ogImageAlt,
+  ogType = 'website',
+} = Astro.props;
+
+const { identity, seo, theme } = site;
+
+/**
+ * The canonical is always the apex with a trailing slash, matching
+ * `trailingSlash: 'always'` in astro.config.mjs and the host's redirect rules.
+ * If those three ever disagree, the entity home silently duplicates.
+ */
+const canonical = new URL(Astro.url.pathname, `${site.url}/`).href;
+
+const ogImage = absoluteUrl(ogImagePath);
+---
+
+<!doctype html>
+<html lang={seo.locale}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    {
+      noindex ? (
+        <meta name="robots" content="noindex, follow" />
+      ) : (
+        <meta
+          name="robots"
+          content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+        />
+      )
+    }
+
+    <meta name="author" content={identity.name} />
+    <meta name="theme-color" content={theme.themeColor} />
+    <meta name="color-scheme" content="dark" />
+    <meta name="generator" content={Astro.generator} />
+
+    {/* Open Graph. The entity home is a `profile`; everything else a `website`. */}
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content={identity.name} />
+    <meta property="og:locale" content={seo.ogLocale} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={ogImageAlt} />
+    <meta property="profile:first_name" content="Abbas" />
+    <meta property="profile:last_name" content="Khan" />
+    {
+      site.socials[0]?.handle && (
+        <meta property="profile:username" content={site.socials[0].handle} />
+      )
+    }
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={ogImageAlt} />
+    {
+      seo.twitterHandle && (
+        <>
+          <meta name="twitter:site" content={seo.twitterHandle} />
+          <meta name="twitter:creator" content={seo.twitterHandle} />
+        </>
+      )
+    }
+
+    {/*
+      Fonts are self-hosted from this origin, downloaded at build time. Nothing
+      is requested from a third party, which is what lets font-src stay 'self'.
+      Astro writes a metric-matched local fallback for each face, so the swap
+      does not shift a single line of text.
+    */}
+    <Font cssVariable="--font-display" preload />
+    <Font cssVariable="--font-text" preload />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    {/*
+      Exactly one JSON-LD block on the whole site. See src/lib/schema.ts for why
+      a second Person or WebSite node would be actively harmful.
+    */}
+    <script type="application/ld+json" is:inline set:html={serialiseGraph(graph)} />
+  </head>
+
+  <body>
+    <slot />
+
+    <script>
+  /**
+   * The only script on the site. No framework, no dependencies, no third party.
+   * Everything here is decoration or information; nothing the page needs in
+   * order to be read or navigated depends on it running.
+   */
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---- Melbourne clock. Information, so it runs even under reduced motion. */
+  const clock = document.querySelector<HTMLElement>('[data-clock]');
+  if (clock) {
+    const format = new Intl.DateTimeFormat('en-AU', {
+      timeZone: 'Australia/Melbourne',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZoneName: 'short',
+    });
+    // Minutes only. A per-second repaint would be a repaint for nothing.
+    const tick = () => {
+      clock.textContent = format.format(new Date());
+    };
+    tick();
+    setInterval(tick, 15000);
+  }
+
+  /* ---- Rules draw themselves in from the left, once. */
+  if (!reduced) {
+    const rules = document.querySelectorAll<HTMLElement>('.reveal-rule');
+    const ruleObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          entry.target.classList.add('is-in');
+          ruleObserver.unobserve(entry.target);
+        }
+      },
+      { threshold: 0.2 },
+    );
+    rules.forEach((rule) => ruleObserver.observe(rule));
+  } else {
+    document
+      .querySelectorAll('.reveal-rule')
+      .forEach((rule) => rule.classList.add('is-in'));
+  }
+
+  /* ---- Each plate lights as it centres, and dims as you walk on. */
+  const plates = document.querySelectorAll<HTMLElement>('[data-plate]');
+  if (!reduced && matchMedia('(min-width: 768px)').matches) {
+    const plateObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          entry.target.classList.toggle('is-lit', entry.isIntersecting);
+        }
+      },
+      { rootMargin: '-25% 0px -25% 0px' },
+    );
+    plates.forEach((plate) => plateObserver.observe(plate));
+  } else {
+    plates.forEach((plate) => plate.classList.add('is-lit'));
+  }
+
+  /* ---- The plates tilt to the pointer, and catch the light where it falls.
+     Writes four custom properties and nothing else, so the browser only ever
+     recomposites: no layout, no paint, no measurable interaction cost. Pointer
+     devices only, and never under reduced motion. */
+  const canTilt =
+    !reduced &&
+    matchMedia('(hover: hover) and (pointer: fine)').matches &&
+    matchMedia('(min-width: 768px)').matches;
+
+  if (canTilt) {
+    // How far the mat leans at the very corner, in degrees. Past about six it
+    // stops reading as a plate on a desk and starts reading as a gimmick.
+    const MAX_TILT = 5;
+
+    for (const stage of plates) {
+      const plate = stage.querySelector<HTMLElement>('.plate');
+      if (!plate) continue;
+
+      let frame = 0;
+      let pending: { x: number; y: number } | null = null;
+
+      const apply = () => {
+        frame = 0;
+        if (!pending) return;
+        const { x, y } = pending;
+        plate.style.setProperty('--ry', `${((x - 0.5) * 2 * MAX_TILT).toFixed(2)}deg`);
+        plate.style.setProperty('--rx', `${(-(y - 0.5) * 2 * MAX_TILT).toFixed(2)}deg`);
+        plate.style.setProperty('--mx', `${(x * 100).toFixed(1)}%`);
+        plate.style.setProperty('--my', `${(y * 100).toFixed(1)}%`);
+      };
+
+      stage.addEventListener(
+        'pointermove',
+        (event) => {
+          const box = plate.getBoundingClientRect();
+          pending = {
+            x: Math.min(1, Math.max(0, (event.clientX - box.left) / box.width)),
+            y: Math.min(1, Math.max(0, (event.clientY - box.top) / box.height)),
+          };
+          plate.style.setProperty('--sheen', '1');
+          // Coalesce to one write per frame however fast the pointer moves.
+          if (!frame) frame = requestAnimationFrame(apply);
+        },
+        { passive: true },
+      );
+
+      const settle = () => {
+        if (frame) cancelAnimationFrame(frame);
+        frame = 0;
+        pending = null;
+        plate.style.setProperty('--rx', '0deg');
+        plate.style.setProperty('--ry', '0deg');
+        plate.style.setProperty('--sheen', '0');
+      };
+
+      stage.addEventListener('pointerleave', settle, { passive: true });
+      stage.addEventListener('pointercancel', settle, { passive: true });
+    }
+  }
+
+  /* ---- The masthead leans a little towards the pointer. The three lines sit
+     at different depths, so the movement parts them instead of sliding one
+     flat plane, which is what makes it read as type standing in space. */
+  const wall = document.querySelector<HTMLElement>('.wall');
+  const mast = document.querySelector<HTMLElement>('.wall__name');
+  if (canTilt && wall && mast) {
+    const MAX_LEAN = 2.2;
+    let mastFrame = 0;
+    let mastPending: { x: number; y: number } | null = null;
+
+    const leanTo = () => {
+      mastFrame = 0;
+      if (!mastPending) return;
+      mast.style.setProperty('--wry', `${((mastPending.x - 0.5) * 2 * MAX_LEAN).toFixed(2)}deg`);
+      mast.style.setProperty('--wrx', `${(-(mastPending.y - 0.5) * 2 * MAX_LEAN).toFixed(2)}deg`);
+    };
+
+    wall.addEventListener(
+      'pointermove',
+      (event) => {
+        const box = wall.getBoundingClientRect();
+        mastPending = {
+          x: Math.min(1, Math.max(0, (event.clientX - box.left) / box.width)),
+          y: Math.min(1, Math.max(0, (event.clientY - box.top) / box.height)),
+        };
+        if (!mastFrame) mastFrame = requestAnimationFrame(leanTo);
+      },
+      { passive: true },
+    );
+
+    wall.addEventListener(
+      'pointerleave',
+      () => {
+        if (mastFrame) cancelAnimationFrame(mastFrame);
+        mastFrame = 0;
+        mastPending = null;
+        mast.style.setProperty('--wrx', '0deg');
+        mast.style.setProperty('--wry', '0deg');
+      },
+      { passive: true },
+    );
+  }
+
+  /* ---- The odometer folio, and the hairline that ties it to the live entry. */
+  const odometer = document.querySelector<HTMLElement>('[data-odometer]');
+  const articles = Array.from(document.querySelectorAll<HTMLElement>('article.entry'));
+
+  if (odometer && articles.length > 0 && matchMedia('(min-width: 1024px)').matches) {
+    const window_ = odometer.querySelector<HTMLElement>('.odometer__window');
+    let active = 0;
+
+    /** The tie runs from the numeral's right edge to the live entry's title block. */
+    const retie = () => {
+      if (!window_) return;
+      const head = articles[active]?.querySelector<HTMLElement>('.entry__head');
+      if (!head) return;
+      const gap = head.getBoundingClientRect().left - window_.getBoundingClientRect().right;
+      odometer.style.setProperty('--tie', `${Math.max(0, Math.round(gap))}px`);
+    };
+
+    const entryObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const index = articles.indexOf(entry.target as HTMLElement);
+          if (index < 0 || index === active) continue;
+          active = index;
+          odometer.style.setProperty('--i', String(index));
+          retie();
+        }
+      },
+      { threshold: 0, rootMargin: '-45% 0px -45% 0px' },
+    );
+
+    articles.forEach((article) => entryObserver.observe(article));
+    retie();
+    addEventListener('resize', retie, { passive: true });
+
+    /* The folio names an entry, so it is only inked while entries are on screen. */
+    const work = document.querySelector('section[aria-labelledby="work-heading"]');
+    if (work) {
+      new IntersectionObserver(
+        ([record]) => {
+          odometer.dataset.visible = record.isIntersecting ? 'true' : 'false';
+          if (record.isIntersecting) retie();
+        },
+        { rootMargin: '-20% 0px -20% 0px' },
+      ).observe(work);
+    }
+  }
+
+  /* ---- The glossary marker. Hover and focus are pure CSS; this adds the click
+     toggle that touch devices need, and Escape to dismiss. */
+  const marks = document.querySelectorAll<HTMLButtonElement>('[data-gloss-mark]');
+  const closeAll = () => {
+    marks.forEach((mark) => mark.setAttribute('aria-expanded', 'false'));
+  };
+
+  marks.forEach((mark) => {
+    mark.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const open = mark.getAttribute('aria-expanded') === 'true';
+      closeAll();
+      mark.setAttribute('aria-expanded', open ? 'false' : 'true');
+    });
+  });
+
+  if (marks.length > 0) {
+    addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeAll();
+    });
+    // Tapping elsewhere dismisses it, which is what a touch user expects.
+    addEventListener('click', closeAll);
+  }
+
+  /* ---- Press `g` to check that the 24px baseline actually holds. It does. */
+  addEventListener('keydown', (event) => {
+    if (event.key !== 'g' || event.metaKey || event.ctrlKey || event.altKey) return;
+    if (event.isComposing) return;
+    const focused = document.activeElement?.tagName;
+    if (focused && ['A', 'INPUT', 'TEXTAREA', 'BUTTON', 'SELECT'].includes(focused)) return;
+
+    const existing = document.querySelector('.baseline-overlay');
+    if (existing) {
+      existing.remove();
+      return;
+    }
+    const overlay = document.createElement('div');
+    overlay.className = 'baseline-overlay';
+    document.body.append(overlay);
+  });
+</script>
+  </body>
+</html>

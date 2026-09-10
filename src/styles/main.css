@@ -1,0 +1,2351 @@
+/* =========================================================================
+   abbasalikhan.com
+   "Set in Melbourne" - the page as one printed signature: a masthead, a
+   numbered index of catalogue entries, a practice note, and a colophon.
+
+   One ground family, one hairline family, one ink family, one spot colour.
+   No border-radius, no box-shadow, no blur, no gradient except the three
+   named below. Depth is one step up, one step down, and hairlines.
+   ========================================================================= */
+
+/* -------------------------------------------------------------- 1. TOKENS */
+
+:root {
+  /* Ground. Warm near-black, deliberately not blue-black and not pure black. */
+  --page: #100f0d;
+  --surface: #0a0908; /* the RECESS, one step DOWN: plate wells, colophon band */
+  --surface-raised: #171613; /* the one step UP: running head, plate mats */
+
+  /* Hairlines. Non-text only. */
+  --hairline: #2a2823;
+  --hairline-lit: #43403a;
+  --emboss: #211f1a; /* the oversized folio numeral only; reads as blind embossing */
+
+  /* Ink. Every value clears 7:1 on page, surface and surface-raised alike. */
+  --text-primary: #e8e4da; /* 15.09:1 */
+  --text-secondary: #b5afa2; /*  8.77:1 */
+  --text-muted: #a8a296; /*  7.55:1 */
+
+  /* Spot ink. --accent carries marks and rules (5.99:1 on the page ground).
+     Anything with a letterform in it uses --accent-text (7.56:1, AAA). */
+  --accent: #00a19b;
+  --accent-muted: #085854;
+  --accent-text: #33b4af;
+
+  /* Type scale. Rendered px at 375 / 768 / 1440. */
+  --t-label: clamp(0.6875rem, 0.66rem + 0.14vw, 0.75rem); /*  11 /  12 /  12 */
+  --t-caption: clamp(0.8125rem, 0.78rem + 0.17vw, 0.875rem); /*  13 /  14 /  14 */
+  --t-body: clamp(1rem, 0.95rem + 0.25vw, 1.125rem); /*  16 /  17 /  18 */
+  --t-lede: clamp(1.25rem, 1.14rem + 0.55vw, 1.5rem); /*  20 /  23 /  24 */
+  --t-title: clamp(1.75rem, 1.45rem + 1.5vw, 2.5rem); /*  29 /  35 /  40 */
+  --t-section: clamp(2.5rem, 1.9rem + 3vw, 4.5rem); /*  42 /  53 /  72 */
+  --t-mast: clamp(3.5rem, 2.1rem + 7.6vw, 9rem); /*  62 /  92 / 143 */
+  --t-folio: clamp(4.5rem, 3rem + 18vw, 17rem); /* 116 / 186 / 272 */
+
+  /* Baseline. Absolute rem so the leading never leaves the 24px grid. */
+  --lh: 1.5rem;
+
+  /* Spacing. Fixed 8px steps, never fluid, so the baseline claim stays true. */
+  --s1: 8px;
+  --s2: 16px;
+  --s3: 24px;
+  --s4: 48px;
+  --s5: 72px;
+  --s6: 96px;
+  --s7: 144px;
+  --s8: 200px;
+
+  /* Grid. */
+  --cols: 2;
+  --gutter: clamp(1rem, 0.5rem + 2vw, 2rem);
+  --pad: clamp(1.25rem, 1rem + 4vw, 7.5rem);
+  --measure: 1360px;
+  --section-pad: var(--s6);
+
+  /* Motion. Colour lands in 0ms; only geometry eases. */
+  --d0: 0ms;
+  --d1: 90ms;
+  --d2: 180ms;
+  --d3: 380ms;
+  --d4: 620ms;
+  --e-geo: cubic-bezier(0.16, 1, 0.3, 1);
+  --e-mech: cubic-bezier(0.2, 0.8, 0.1, 1);
+
+  color-scheme: dark;
+  /* Every version, year and coordinate digit-aligns down the whole page. */
+  font-variant-numeric: tabular-nums slashed-zero;
+  scrollbar-width: thin;
+  scrollbar-color: var(--hairline-lit) var(--page);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+@media (min-width: 431px) {
+  :root {
+    --cols: 4;
+  }
+}
+@media (min-width: 768px) {
+  :root {
+    --cols: 6;
+    --section-pad: var(--s7);
+  }
+}
+@media (min-width: 1024px) {
+  :root {
+    --cols: 12;
+    --section-pad: var(--s7);
+    /* A wider outer margin from here up. The marginal folio lives in it, so it
+       has to be a real margin rather than a token one. 96px at 1024 rising to
+       208px past 1600. */
+    --pad: clamp(6rem, 4rem + 6vw, 13rem);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root {
+    scroll-behavior: smooth;
+  }
+}
+
+/* ---------------------------------------------------------------- 2. RESET */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  /* Painted explicitly so no host theme shows through behind the page. */
+  background: var(--page);
+}
+
+body {
+  background: var(--page);
+  color: var(--text-primary);
+  font-family: var(--font-text);
+  font-size: var(--t-body);
+  font-weight: 400;
+  line-height: var(--lh);
+  /* clip rather than hidden: does not create a scroll container. */
+  overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+img,
+picture,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+}
+
+ol,
+ul,
+dl,
+dd {
+  margin: 0;
+  padding: 0;
+}
+
+ol,
+ul {
+  list-style: none;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--page);
+}
+::-moz-selection {
+  background: var(--accent);
+  color: var(--page);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--page);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--hairline-lit);
+  border: none;
+  border-radius: 0;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--hairline);
+}
+
+/* Square, hard, no glow. Identical on every interactive element. */
+:focus-visible {
+  outline: 1px solid var(--accent-text);
+  outline-offset: 4px;
+}
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ------------------------------------------------------------ 3. TYPE ROLES */
+
+/* Bodoni never appears below 28px, never below weight 500. Below 28px is
+   Archivo, no exceptions. The opsz axis is set low on purpose: a low optical
+   size THICKENS the hairlines so they survive being reversed out of a dark
+   ground. A high opsz here would thin them to nothing. */
+.display {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-variation-settings: 'opsz' 72;
+}
+
+.display--xl {
+  font-variation-settings: 'opsz' 40;
+}
+
+/* Small tracked caps. Archivo does the job a monospace would otherwise do. */
+.label {
+  font-family: var(--font-text);
+  font-weight: 600;
+  font-size: var(--t-label);
+  line-height: var(--lh);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--text-muted);
+  /* Cancel the trailing letter-space so the optical right edge lands on grid. */
+  margin-right: -0.16em;
+}
+
+@media (max-width: 400px) {
+  .label {
+    letter-spacing: 0.1em;
+    margin-right: -0.1em;
+  }
+}
+
+.value {
+  font-size: var(--t-caption);
+  line-height: var(--lh);
+  color: var(--text-primary);
+}
+
+.lede {
+  font-size: var(--t-lede);
+  line-height: 1.35;
+  color: var(--text-secondary);
+  max-width: 34ch;
+  text-wrap: pretty;
+}
+
+.prose {
+  font-size: var(--t-body);
+  line-height: var(--lh);
+  max-width: 62ch;
+  text-wrap: pretty;
+}
+
+.prose + .prose {
+  margin-top: var(--lh);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ------------------------------------------------------------- 4. STRUCTURE */
+
+.shell {
+  max-width: var(--measure);
+  margin-inline: auto;
+  padding-inline: var(--pad);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  column-gap: var(--gutter);
+}
+
+/* Rules and plates run to the viewport edge while content stays inset. That
+   mismatch is what makes the page read as trimmed paper.
+   Deliberately 100% and not 100vw: 100vw includes the scrollbar gutter, so it
+   overflows the page by the scrollbar's width wherever one is reserved. Every
+   bled element is rendered as a sibling of .shell rather than inside it, so
+   100% already resolves to the full viewport width. */
+.bleed {
+  width: 100%;
+}
+
+.rule {
+  position: relative;
+  height: 1px;
+  background: var(--hairline);
+  border: 0;
+}
+
+/* Print registration ticks where a bled rule crosses the margin lines. */
+.rule__tick {
+  position: absolute;
+  top: -2px;
+  width: 5px;
+  height: 5px;
+  pointer-events: none;
+}
+.rule__tick::before,
+.rule__tick::after {
+  content: '';
+  position: absolute;
+  background: var(--hairline-lit);
+}
+.rule__tick::before {
+  left: 2px;
+  top: 0;
+  width: 1px;
+  height: 5px;
+}
+.rule__tick::after {
+  top: 2px;
+  left: 0;
+  width: 5px;
+  height: 1px;
+}
+.rule__tick[data-edge='left'] {
+  left: var(--pad);
+}
+.rule__tick[data-edge='right'] {
+  right: var(--pad);
+}
+.rule__tick[data-edge='inner-left'] {
+  left: calc(var(--pad) + 25%);
+}
+.rule__tick[data-edge='inner-right'] {
+  right: calc(var(--pad) + 25%);
+}
+
+@media (max-width: 479px) {
+  .rule__tick[data-edge='inner-left'],
+  .rule__tick[data-edge='inner-right'] {
+    display: none;
+  }
+}
+
+.section {
+  position: relative;
+  /* Above the marginal folio, which sits at z-index 0. */
+  z-index: 1;
+  padding-block: var(--section-pad);
+  scroll-margin-block-start: 5.5rem;
+}
+
+/* --------------------------------------------------------- 5. RUNNING HEAD */
+
+.runhead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  background: var(--surface-raised);
+  border-bottom: 1px solid var(--hairline);
+  /* Named so it holds its place across a page transition rather than
+     cross-fading with the rest of the document. */
+  view-transition-name: runhead;
+}
+
+.runhead__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--gutter);
+  width: 100%;
+  max-width: var(--measure);
+  margin-inline: auto;
+  padding-inline: var(--pad);
+}
+
+.runhead__home {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  /* Fills the bar so the tap target is the full 44px, not the cap height. */
+  height: 44px;
+  white-space: nowrap;
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.runhead__home .label {
+  color: var(--text-primary);
+}
+
+.runhead__nav {
+  margin-inline: auto;
+}
+
+.runhead__nav ul {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+}
+
+/* The fade: nav links rest dim and come up to full on hover, focus and on the
+   page you are on. Opacity only, so it composites and never reflows. */
+.runhead__link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 44px;
+  text-decoration: none;
+  color: var(--text-primary);
+  opacity: 0.55;
+  transition: opacity var(--d2) var(--e-geo);
+}
+
+.runhead__link:hover,
+.runhead__link:focus-visible {
+  opacity: 1;
+}
+
+.runhead__link[aria-current='page'] {
+  opacity: 1;
+}
+
+/* The current page keeps a teal rule under it, drawn from the left. */
+.runhead__link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 9px;
+  height: 1px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--d2) var(--e-geo);
+}
+
+.runhead__link[aria-current='page']::after,
+.runhead__link:hover::after,
+.runhead__link:focus-visible::after {
+  transform: scaleX(1);
+}
+
+.runhead__clock {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  font-weight: 500;
+  font-size: var(--t-label);
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+/* A square, never a circle. The only border-radius in this file is the 0 that
+   squares off the scrollbar thumb. */
+.runhead__live {
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+}
+
+.runhead__name--short {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .runhead__name--full {
+    display: none;
+  }
+  .runhead__name--short {
+    display: inline;
+  }
+  .runhead__nav ul {
+    gap: var(--s2);
+  }
+}
+
+/* Below this the clock is the first thing to go, then nothing else has to. */
+@media (max-width: 400px) {
+  .runhead__clock {
+    display: none;
+  }
+}
+
+.skip {
+  position: absolute;
+  top: -100px;
+  left: var(--pad);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  height: 44px;
+  padding-inline: var(--s2);
+  background: var(--surface-raised);
+  border: 1px solid var(--hairline-lit);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+.skip:focus {
+  top: 0;
+}
+
+/* ---- CROSS-DOCUMENT PAGE TRANSITIONS -------------------------------------
+   Pages fade into one another with zero JavaScript. Browsers without support
+   simply navigate, which is the same thing without the fade. The running head
+   is excluded above so it stays put while the content changes underneath it. */
+
+@view-transition {
+  navigation: auto;
+}
+
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes page-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+::view-transition-old(root) {
+  animation: page-fade-out 140ms var(--e-geo) both;
+}
+
+::view-transition-new(root) {
+  animation: page-fade-in 240ms var(--e-geo) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+  .runhead__link,
+  .runhead__link::after {
+    transition: none;
+  }
+}
+
+/* ----------------------------------------------------------- 6. TITLE WALL */
+
+.wall {
+  min-height: 100vh;
+  display: grid;
+  align-content: space-between;
+  row-gap: var(--s5);
+  padding-block: 0 var(--s5);
+  /* Deep enough that the masthead leans rather than distorts. */
+  perspective: 1400px;
+  perspective-origin: 30% 60%;
+}
+
+@supports (height: 100svh) {
+  .wall {
+    min-height: 100svh;
+  }
+}
+
+.wall__credits {
+  row-gap: var(--s3);
+  padding-block-start: var(--s4);
+}
+
+.wall__credit {
+  grid-column: span 2;
+  border-top: 1px solid var(--hairline);
+  padding-block-start: var(--s1);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+@media (min-width: 768px) {
+  .wall__credits {
+    padding-block-start: var(--s5);
+  }
+  .wall__credit {
+    grid-column: span 2;
+  }
+}
+
+.wall__body {
+  row-gap: var(--s4);
+  align-items: end;
+}
+
+.wall__name {
+  grid-column: 1 / -1;
+  font-size: var(--t-mast);
+  line-height: 0.9;
+  letter-spacing: -0.021em;
+  hanging-punctuation: first last;
+  color: var(--text-primary);
+  /* Optical margin alignment: cancel the display face's left sidebearing so the
+     masthead's ink lines up with the labels above it rather than its glyph box.
+     Applied to the block, not per line, so it holds for any name set here. */
+  margin-inline-start: -0.02em;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--wrx, 0deg)) rotateY(var(--wry, 0deg));
+  transition: transform var(--d4) var(--e-geo);
+  will-change: transform;
+}
+
+/* The three lines sit at different depths, so moving the pointer parts them
+   very slightly instead of sliding one flat plane. The rotation is tiny on
+   purpose: at 143px, two degrees is plenty and four looks broken. */
+.wall__name span {
+  display: block;
+  transform: translateZ(calc(var(--line, 0) * 22px));
+}
+
+.wall__name span:nth-child(1) {
+  --line: 0;
+}
+.wall__name span:nth-child(2) {
+  --line: 1;
+}
+.wall__name span:nth-child(3) {
+  --line: 2;
+}
+
+.wall__aside {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.wall__facts {
+  display: flex;
+  flex-direction: column;
+}
+
+.wall__fact {
+  position: relative;
+  border-top: 1px solid var(--hairline);
+  padding-block: var(--s1);
+  font-size: var(--t-caption);
+  line-height: var(--lh);
+  color: var(--text-secondary);
+}
+
+.wall__foot {
+  display: flex;
+  justify-content: flex-start;
+}
+
+@media (min-width: 768px) {
+  .wall__name {
+    grid-column: 1 / span 4;
+  }
+  .wall__aside {
+    grid-column: 5 / -1;
+  }
+  .wall__foot {
+    justify-content: flex-end;
+  }
+}
+
+@media (min-width: 1024px) {
+  .wall__name {
+    grid-column: 1 / span 8;
+  }
+  .wall__aside {
+    grid-column: 9 / span 4;
+  }
+}
+
+/* ---- GLOSS ---------------------------------------------------------------
+   A footnote marker on a term, and the note it opens. Hover and keyboard focus
+   are handled in CSS, so this works with scripting switched off. */
+
+/* Deliberately NOT a positioning context. The panel anchors to the nearest
+   positioned block ancestor (see .wall__fact) rather than to this inline span,
+   because a note pinned to a mid-sentence word runs off the edge of a narrow
+   screen. Any other host for this component needs `position: relative`. */
+.gloss {
+  white-space: nowrap;
+}
+
+/* <dfn> italicises by default in every browser; this page does not load an
+   italic file, so a synthesised oblique would appear. Keep it upright. */
+.gloss__term {
+  font-style: normal;
+}
+
+.gloss__mark {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5em;
+  height: 1.5em;
+  margin-inline-start: 0.42em;
+  padding: 0;
+  border: 1px solid var(--hairline-lit);
+  background: transparent;
+  color: var(--accent-text);
+  font-family: var(--font-text);
+  font-size: 0.72em;
+  font-weight: 600;
+  line-height: 1;
+  vertical-align: 0.18em;
+  cursor: help;
+  transition: transform var(--d1) var(--e-geo);
+}
+
+.gloss__mark:hover,
+.gloss__mark:focus-visible,
+.gloss__mark[aria-expanded='true'] {
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.gloss__mark:active {
+  transform: translateY(0.5px);
+}
+
+/* A 44px target for touch, without disturbing the 1em box in the text. */
+.gloss__mark::after {
+  content: '';
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+}
+
+.gloss__panel {
+  position: absolute;
+  top: calc(100% + var(--s2));
+  left: 0;
+  z-index: 12;
+  width: max-content;
+  max-width: min(40ch, 100%);
+  padding: var(--s2);
+  background: var(--surface-raised);
+  border: 1px solid var(--hairline-lit);
+  color: var(--text-secondary);
+  font-size: var(--t-caption);
+  line-height: var(--lh);
+  white-space: normal;
+  text-wrap: pretty;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition:
+    opacity var(--d2) var(--e-geo),
+    transform var(--d2) var(--e-geo),
+    visibility var(--d2);
+}
+
+/* A teal rule along the top edge, so the note is visibly the marker's. */
+.gloss__panel::before {
+  content: '';
+  position: absolute;
+  inset: -1px 0 auto 0;
+  height: 1px;
+  background: var(--accent);
+}
+
+.gloss:hover .gloss__panel,
+.gloss:focus-within .gloss__panel,
+.gloss__mark[aria-expanded='true'] + .gloss__panel {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* On wide screens the facts sit in the last columns, so the note grows left
+   into the empty page rather than off the trimmed edge. */
+@media (min-width: 1024px) {
+  .gloss__panel {
+    left: auto;
+    right: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gloss__panel {
+    transition: none;
+    transform: none;
+  }
+}
+
+/* ------------------------------------------------------------- 7. CONTENTS */
+
+.contents__list {
+  border-top: 1px solid var(--hairline);
+}
+
+.contents__row {
+  display: grid;
+  grid-template-columns: 32px 1fr auto;
+  align-items: center;
+  column-gap: var(--gutter);
+  min-height: 44px;
+  padding-block: var(--s1);
+  border-bottom: 1px solid var(--hairline);
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.contents__row:hover {
+  background: var(--surface-raised);
+}
+
+.contents__row:active {
+  background: var(--surface-raised);
+  transform: translateY(0.5px);
+}
+
+.contents__folio {
+  font-weight: 600;
+  font-size: var(--t-label);
+  color: var(--text-muted);
+  /* A genuine column: the rail's rule runs the row's full height. */
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  border-right: 1px solid var(--hairline);
+}
+
+.contents__name {
+  font-weight: 500;
+}
+
+.contents__leaders {
+  display: none;
+}
+
+.contents__status {
+  font-size: var(--t-caption);
+  color: var(--text-muted);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.contents__field,
+.contents__platforms {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .contents__row {
+    grid-template-columns: 40px auto 1fr auto auto;
+  }
+  .contents__folio {
+    border-right: 0;
+  }
+  /* Real print leaders. */
+  .contents__leaders {
+    display: block;
+    align-self: end;
+    height: 1em;
+    background-image: radial-gradient(
+      circle,
+      var(--hairline) 1px,
+      transparent 1px
+    );
+    background-size: 6px 6px;
+    background-position: 0 60%;
+    background-repeat: repeat-x;
+  }
+  .contents__field {
+    display: block;
+    font-size: var(--t-caption);
+    color: var(--text-muted);
+    min-width: 9ch;
+  }
+}
+
+@media (min-width: 1024px) {
+  .contents__row {
+    grid-template-columns: 40px minmax(0, 14ch) 1fr auto auto auto;
+  }
+  .contents__platforms {
+    display: block;
+    font-size: var(--t-caption);
+    color: var(--text-muted);
+    min-width: 16ch;
+    text-align: right;
+  }
+}
+
+/* -------------------------------------------------------------- 8. ENTRIES */
+
+.entry {
+  row-gap: var(--s4);
+  align-items: start;
+}
+
+.entry__head {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+/* On mobile and without JS, every entry carries its own numeral. This is the
+   fallback for the fixed odometer, and it is a design rather than a downgrade. */
+.entry__folio {
+  position: relative;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-variation-settings: 'opsz' 40;
+  font-variant-numeric: lining-nums tabular-nums;
+  font-size: var(--t-folio);
+  line-height: 0.78;
+  letter-spacing: -0.055em;
+  color: var(--emboss);
+}
+
+/* The rule runs from the numeral out to the trimmed edge of the page. Reaching
+   the edge with a negative inset rather than 100vw means it lands exactly on the
+   page edge and cannot widen the document. */
+.entry__folio::before {
+  content: attr(data-folio);
+}
+
+.entry__folio::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: calc(var(--pad) * -1);
+  bottom: 0;
+  height: 1px;
+  background: var(--accent);
+}
+
+.entry__title {
+  font-size: var(--t-title);
+  letter-spacing: -0.015em;
+  line-height: 1.05;
+  color: var(--text-primary);
+}
+
+.entry__premise {
+  max-width: 40ch;
+}
+
+.entry__meta {
+  display: flex;
+  flex-direction: column;
+  margin-block-start: var(--s2);
+  /* Matches the prose measure so the label/value pairs stay readable as pairs
+     instead of drifting to opposite ends of a very wide column. */
+  max-width: 52ch;
+}
+
+.entry__metarow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--s1);
+  border-top: 1px solid var(--hairline);
+  padding-block: var(--s1);
+}
+
+.entry__status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s1);
+}
+
+/* Status is never colour alone: the square always sits beside its word. */
+.entry__mark {
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+  flex: none;
+}
+.entry__mark[data-state='quiet'] {
+  background: var(--accent-muted);
+}
+
+.entry__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s3);
+  margin-block-start: var(--s2);
+}
+
+/* ---- THE PLATE ------------------------------------------------------------
+   A mat mounted on a stage. The stage holds the perspective, the mat rotates,
+   and the well sits forward of the mat on the Z axis, so tilting produces real
+   parallax between the frame and its contents instead of a flat skew.
+
+   Everything here is transform and opacity only, so the whole effect runs on
+   the compositor: no layout, no paint, no cost to interaction latency. */
+
+.plate-stage {
+  grid-column: 1 / -1;
+  perspective: 900px;
+  perspective-origin: center;
+}
+
+.plate {
+  position: relative;
+  background-color: var(--surface-raised);
+  background-image: radial-gradient(
+    120% 90% at 50% 0%,
+    color-mix(in srgb, var(--spill, var(--accent)) 9%, transparent),
+    transparent 70%
+  );
+  border: 1px solid var(--hairline);
+  padding: clamp(20px, 3.4vw, 72px);
+  transform-style: preserve-3d;
+  will-change: transform;
+  /* --rx / --ry are written by the pointer handler; both rest at zero. */
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition:
+    transform var(--d3) var(--e-geo),
+    border-color var(--d0);
+}
+
+/* The specular sheen: one soft highlight that tracks the pointer across the
+   mat, so the surface reads as something being lit rather than something
+   glowing. Sits under the contents, above the mat. */
+.plate::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--sheen, 0);
+  transition: opacity var(--d3) var(--e-geo);
+  background: radial-gradient(
+    38% 55% at var(--mx, 50%) var(--my, 50%),
+    color-mix(in srgb, var(--text-primary) 9%, transparent),
+    transparent 72%
+  );
+}
+
+/* The unlit state. A scrim, not a filter: a filter on this element would
+   flatten preserve-3d and collapse the depth on every child. */
+.plate::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--page);
+  opacity: 0.4;
+  transition: opacity 700ms var(--e-geo);
+}
+
+.plate-stage.is-lit .plate::after {
+  opacity: 0;
+}
+
+/* The contents ride forward of the mat. This one line is what makes the tilt
+   read as depth rather than as a skewed rectangle. */
+.plate__depth {
+  position: relative;
+  transform: translateZ(26px);
+  transform-style: preserve-3d;
+}
+
+.plate__well {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  padding: clamp(16px, 2.4vw, 32px);
+}
+
+.plate__label {
+  display: block;
+  margin-block-end: var(--s2);
+}
+
+.plate__list {
+  display: flex;
+  flex-direction: column;
+}
+
+.plate__item {
+  display: grid;
+  grid-template-columns: 6px 1fr;
+  align-items: start;
+  column-gap: var(--s2);
+  border-top: 1px solid var(--hairline);
+  padding-block: var(--s2);
+  font-size: var(--t-caption);
+  line-height: var(--lh);
+  color: var(--text-primary);
+}
+
+.plate__item::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  margin-block-start: 0.55em;
+  background: var(--accent);
+}
+
+.plate__img {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  max-height: 60svh;
+}
+
+.plate__caption {
+  margin-block-start: var(--s3);
+  font-size: var(--t-caption);
+  line-height: var(--lh);
+  color: var(--text-muted);
+}
+
+@media (min-width: 1024px) {
+  .entry__head {
+    grid-column: 1 / span 7;
+  }
+  .plate-stage {
+    grid-column: 9 / span 4;
+  }
+  /* The alternation is what turns asymmetry into rhythm. */
+  .entry:nth-of-type(even) .entry__head {
+    grid-column: 6 / span 7;
+    order: 2;
+  }
+  .entry:nth-of-type(even) .plate-stage {
+    grid-column: 1 / span 4;
+    order: 1;
+  }
+  /* The fixed odometer takes over from the per-entry numeral. */
+  .entry__folio {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------- 9. PRACTICE */
+
+.practice {
+  row-gap: var(--s4);
+}
+
+.practice__marginalia {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+}
+
+.practice__note {
+  display: grid;
+  grid-template-columns: 3ch 1fr;
+  column-gap: var(--s2);
+  border-top: 1px solid var(--hairline);
+  padding-block: var(--s1);
+  font-size: var(--t-caption);
+  line-height: var(--lh);
+  color: var(--text-secondary);
+}
+
+.practice__body {
+  grid-column: 1 / -1;
+}
+
+/* Drop cap on the first paragraph only. */
+.practice__body > .prose:first-child::first-letter {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-variation-settings: 'opsz' 72;
+  font-size: calc(var(--t-body) * 3.6);
+  line-height: 0.82;
+  float: left;
+  margin: 0.06em 0.12em -0.06em 0;
+  color: var(--text-primary);
+}
+
+.practice__portrait {
+  grid-column: 1 / -1;
+  margin-block-start: var(--s4);
+}
+
+.practice__portrait img {
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--hairline);
+}
+
+@media (min-width: 1024px) {
+  .practice__marginalia {
+    grid-column: 1 / span 3;
+  }
+  .practice__body {
+    grid-column: 5 / span 6;
+  }
+  .practice__portrait {
+    grid-column: 1 / span 3;
+  }
+}
+
+/* -------------------------------------------------------------- 9b. SIGNUP */
+
+/* An editorial field, not a widget: one hairline under the input, and a submit
+   that reads as the same text affordance as every other link on the page. No
+   filled pill, no radius, no box. */
+
+.signup {
+  row-gap: var(--s4);
+}
+
+.signup__intro {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.signup__heading {
+  font-size: var(--t-title);
+  letter-spacing: -0.015em;
+  line-height: 1.05;
+  color: var(--text-primary);
+}
+
+.signup__form {
+  grid-column: 1 / -1;
+}
+
+/* The honeypot. Off-canvas rather than display:none, because some bots skip
+   fields that are not rendered at all. */
+.signup__trap {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.signup__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s3);
+  max-width: 46ch;
+  padding-block-end: var(--s1);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.signup__row:focus-within {
+  border-bottom-color: var(--hairline-lit);
+}
+
+.signup__input {
+  flex: 1 1 16ch;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-text);
+  font-size: var(--t-lede);
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.signup__input::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
+/* Autofill in WebKit and Blink paints its own background. Override it so the
+   field does not turn pale blue on a near-black page. */
+.signup__input:autofill,
+.signup__input:-webkit-autofill {
+  -webkit-text-fill-color: var(--text-primary);
+  -webkit-box-shadow: 0 0 0 100px var(--page) inset;
+  caret-color: var(--text-primary);
+}
+
+.signup__submit {
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-text);
+  font-size: var(--t-body);
+  cursor: pointer;
+}
+
+.signup__note {
+  margin-block-start: var(--s2);
+  font-size: var(--t-caption);
+  line-height: var(--lh);
+  color: var(--text-muted);
+}
+
+/* Reserves its own line height so feedback appearing never shifts the layout. */
+.signup__status {
+  margin-block-start: var(--s2);
+  min-height: var(--lh);
+  font-size: var(--t-caption);
+  line-height: var(--lh);
+  color: var(--text-secondary);
+}
+
+.signup__status[data-state='ok'] {
+  color: var(--text-primary);
+}
+
+.signup__status[data-state='err'] {
+  color: var(--accent-text);
+}
+
+.signup__form[data-busy] .signup__submit {
+  color: var(--text-muted);
+}
+
+@media (min-width: 1024px) {
+  .signup__intro {
+    grid-column: 1 / span 5;
+  }
+  .signup__form {
+    grid-column: 7 / span 6;
+  }
+}
+
+/* ------------------------------------------------------------- 9a. ICONOGRAPHY */
+
+/* Icons sit in the line like a letter: they take the local colour and scale
+   with the local font size, so they never need their own sizing rules. */
+.icon {
+  display: inline-block;
+  flex: none;
+  vertical-align: -0.14em;
+}
+
+/* Platform marks, in metadata rows and the catalogue. */
+.platforms {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.platforms__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42em;
+  white-space: nowrap;
+}
+
+/* Marks-only: bigger, since there is no word to carry the meaning. */
+.platforms--marks {
+  gap: 0.55em;
+  font-size: 1.2em;
+  color: var(--text-secondary);
+}
+
+/* The product's own icon. Framed identically everywhere so three apps with
+   three different visual languages still read as one catalogue. */
+.appmark {
+  flex: none;
+  width: 1.9em;
+  height: 1.9em;
+  object-fit: cover;
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+}
+
+.appmark--lg {
+  width: 2.6rem;
+  height: 2.6rem;
+}
+
+.appmark--xl {
+  width: 3.25rem;
+  height: 3.25rem;
+}
+
+@media (min-width: 768px) {
+  .appmark--lg {
+    width: 3.25rem;
+    height: 3.25rem;
+  }
+  .appmark--xl {
+    width: 4rem;
+    height: 4rem;
+  }
+}
+
+/* Title plus mark, sharing a baseline. */
+.entry__titleline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.catalogue__name {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.skills__term {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55em;
+}
+
+.skills__term .icon {
+  font-size: 1.25em;
+  color: var(--accent-text);
+}
+
+.contact__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55em;
+}
+
+.contact__label .icon {
+  font-size: 1.3em;
+  color: var(--accent-text);
+}
+
+.contact__social {
+  gap: 0.55em;
+}
+
+.contact__social .icon {
+  font-size: 1.15em;
+}
+
+.link__arrow {
+  font-size: 0.9em;
+  opacity: 0.7;
+}
+
+/* ------------------------------------------------------- 9c. PAGE FURNITURE */
+
+/* The home page is paced like a spread, with plates carrying the whitespace.
+   The inner pages are mostly prose, where the same rhythm stacks two paddings
+   into a gap wide enough to read as an empty page rather than a generous one. */
+.page-inner {
+  --section-pad: var(--s4);
+}
+
+@media (min-width: 768px) {
+  .page-inner {
+    --section-pad: var(--s5);
+  }
+}
+
+@media (min-width: 1024px) {
+  .page-inner {
+    --section-pad: var(--s6);
+  }
+}
+
+/* A page's opening block gets air above it and a normal gap below, rather than
+   a full section's padding on both sides of one heading. */
+.page-inner > .page-head:first-child,
+.page-inner > article > .page-head:first-child {
+  padding-block: var(--s5) var(--s4);
+}
+
+@media (min-width: 1024px) {
+  .page-inner > .page-head:first-child,
+  .page-inner > article > .page-head:first-child {
+    padding-block: var(--s6) var(--s5);
+  }
+}
+
+/* Same for the project hero, which is a header rather than a .page-head. */
+.page-inner > article > .project-head {
+  padding-block: var(--s5) var(--s4);
+}
+
+@media (min-width: 1024px) {
+  .page-inner > article > .project-head {
+    padding-block: var(--s6) var(--s5);
+  }
+}
+
+
+/* Shared head block for /work/, /about/, /writing/ and each post. */
+.page-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+/* An h1 that is set as body copy rather than display type. Explicit weight and
+   size, because a bare h1 would otherwise pick up the browser's own. */
+.page-head__statement {
+  font-weight: 400;
+  max-width: 34ch;
+}
+
+.page-head__title {
+  font-size: var(--t-section);
+  line-height: 1;
+  letter-spacing: -0.018em;
+  color: var(--text-primary);
+  /* Optical margin alignment, as on the masthead. */
+  margin-inline-start: -0.02em;
+}
+
+.page-head--split {
+  display: grid;
+  row-gap: var(--s5);
+}
+
+.page-head__body {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.portrait {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.portrait img {
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--hairline);
+}
+
+@media (min-width: 1024px) {
+  .page-head__body {
+    grid-column: 1 / span 7;
+  }
+  .portrait {
+    grid-column: 9 / span 4;
+  }
+}
+
+/* ---- The catalogue on /work/ and /writing/ -------------------------------- */
+
+.catalogue {
+  border-top: 1px solid var(--hairline);
+}
+
+.catalogue__head {
+  display: none;
+}
+
+.catalogue__row {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr;
+  align-items: baseline;
+  column-gap: var(--gutter);
+  row-gap: var(--s1);
+  padding-block: var(--s3);
+  border-bottom: 1px solid var(--hairline);
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.catalogue__row:hover {
+  background: var(--surface-raised);
+}
+
+.catalogue__row:active {
+  transform: translateY(0.5px);
+}
+
+.catalogue__folio {
+  font-weight: 600;
+  font-size: var(--t-label);
+  color: var(--text-muted);
+}
+
+.catalogue__name {
+  /* min-width:0 lets a flex item shrink below its content size, which is what
+     allows the title to wrap rather than overflow if a future name is longer. */
+  min-width: 0;
+  font-size: var(--t-lede);
+  font-weight: 500;
+  line-height: 1.2;
+  overflow-wrap: break-word;
+}
+
+.catalogue__meta {
+  grid-column: 2;
+  font-size: var(--t-caption);
+  color: var(--text-muted);
+}
+
+.catalogue__status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s1);
+}
+
+.catalogue__tagline {
+  grid-column: 2;
+  font-size: var(--t-caption);
+  line-height: var(--lh);
+  color: var(--text-secondary);
+  max-width: 52ch;
+}
+
+.catalogue__row--post {
+  grid-template-columns: 1fr;
+}
+
+.catalogue__row--post .catalogue__meta,
+.catalogue__row--post .catalogue__tagline {
+  grid-column: 1;
+}
+
+@media (min-width: 900px) {
+  /* The name cell holds an app icon plus a title at --t-lede, so a ch-based cap
+     is the wrong unit for it: 16ch measured 165px while the content needed 227,
+     and the overflow ran straight over the next column. The name track now has
+     a real minimum and takes the slack; the metadata tracks are fixed, because
+     their content is short and known. */
+  .catalogue__head,
+  .catalogue__row {
+    grid-template-columns: 2.5rem minmax(15rem, 1fr) 9rem 6rem auto;
+    column-gap: var(--gutter);
+  }
+  .catalogue__head {
+    display: grid;
+    padding-block: var(--s1);
+    border-bottom: 1px solid var(--hairline);
+  }
+  .catalogue__row {
+    align-items: center;
+  }
+  .catalogue__meta {
+    grid-column: auto;
+  }
+  .catalogue__tagline {
+    grid-column: 2 / -1;
+    grid-row: 2;
+  }
+  .catalogue__row--post {
+    grid-template-columns: 1fr auto;
+  }
+  .catalogue__row--post .catalogue__tagline {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ---- Project page --------------------------------------------------------- */
+
+.project-head {
+  row-gap: var(--s5);
+}
+
+.project-head__body {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+/* A product name is one unbreakable word, so this scale has to start lower
+   than the section scale: "MovieWindows" plus its icon overran a 375px screen
+   at 40px. It reaches the same size as everything else by the tablet width. */
+.project-head__title {
+  font-size: clamp(2rem, 1.1rem + 3.8vw, 4.5rem);
+  line-height: 1;
+  letter-spacing: -0.018em;
+  margin-inline-start: -0.02em;
+}
+
+.project-head__tagline {
+  max-width: 30ch;
+}
+
+@media (min-width: 1024px) {
+  .project-head__body {
+    grid-column: 1 / span 6;
+  }
+  .project-head .plate-stage {
+    grid-column: 8 / span 5;
+  }
+}
+
+/* A labelled section: the label sits in the margin, the prose in the measure. */
+.project-section {
+  row-gap: var(--s3);
+}
+
+.project-section__label {
+  grid-column: 1 / -1;
+}
+
+.project-section__body {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 1024px) {
+  .project-section__label {
+    grid-column: 1 / span 3;
+  }
+  .project-section__body {
+    grid-column: 5 / span 7;
+  }
+}
+
+/* The opening paragraph of a project page carries more weight than body copy. */
+.prose--lead {
+  font-size: var(--t-lede);
+  line-height: 1.45;
+  max-width: 46ch;
+  color: var(--text-primary);
+}
+
+.capabilities {
+  margin-block-start: var(--s4);
+  border-top: 1px solid var(--hairline);
+}
+
+.capabilities__item {
+  display: grid;
+  grid-template-columns: 6px 1fr;
+  column-gap: var(--s2);
+  align-items: start;
+  padding-block: var(--s2);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.capabilities__item::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  margin-block-start: 0.55em;
+  background: var(--accent);
+}
+
+.capabilities__title {
+  grid-column: 2;
+  font-weight: 500;
+}
+
+.capabilities__detail {
+  grid-column: 2;
+  font-size: var(--t-caption);
+  line-height: var(--lh);
+  color: var(--text-secondary);
+  max-width: 56ch;
+}
+
+.project-next {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.project-next__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: var(--t-title);
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+  color: var(--text-primary);
+  text-decoration: none;
+  width: fit-content;
+}
+
+.project-next__link:hover,
+.project-next__link:focus-visible {
+  color: var(--accent-text);
+}
+
+/* ---- Skills, on /about/ --------------------------------------------------- */
+
+.skills {
+  row-gap: var(--s3);
+}
+
+.skills__label {
+  grid-column: 1 / -1;
+}
+
+.skills__list {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--hairline);
+}
+
+.skills__row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2px;
+  padding-block: var(--s2);
+  border-bottom: 1px solid var(--hairline);
+}
+
+@media (min-width: 768px) {
+  .skills__row {
+    grid-template-columns: minmax(0, 14ch) 1fr;
+    gap: var(--gutter);
+    align-items: baseline;
+  }
+}
+
+@media (min-width: 1024px) {
+  .skills__label {
+    grid-column: 1 / span 3;
+  }
+  .skills__list {
+    grid-column: 5 / span 7;
+  }
+}
+
+/* ---- The about teaser on the home page ------------------------------------ */
+
+.teaser__body {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.teaser__heading {
+  font-size: var(--t-title);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: var(--text-primary);
+  max-width: 30ch;
+}
+
+@media (min-width: 1024px) {
+  .teaser__body {
+    grid-column: 5 / span 7;
+  }
+}
+
+/* ---- Get in touch --------------------------------------------------------- */
+
+.contact {
+  row-gap: var(--s4);
+}
+
+.contact__intro,
+.contact__body {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.contact__heading {
+  font-size: var(--t-title);
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+  color: var(--text-primary);
+}
+
+.contact__line {
+  position: relative;
+  display: inline-block;
+  width: fit-content;
+  max-width: 100%;
+  margin-block: var(--s1) var(--s2);
+  /* Fixed padding, not em: this has to clear 44px at the smallest size the
+     clamp reaches, and em would shrink the padding exactly when it is needed. */
+  padding-block: 11px 10px;
+  font-size: clamp(1.25rem, 0.75rem + 1.9vw, 2.25rem);
+  line-height: 1.15;
+  letter-spacing: -0.018em;
+  color: var(--text-primary);
+  text-decoration: none;
+  hyphens: none;
+  /* Last resort only: the size above is chosen so a normal address never
+     reaches it, but a very long one must still not escape its column. */
+  overflow-wrap: anywhere;
+}
+
+/* Sits just under the text rather than at the padding edge. */
+.contact__line::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 6px;
+  height: 1px;
+  background: var(--hairline);
+  transform-origin: left;
+  transition: transform var(--d3) var(--e-geo);
+}
+
+.contact__line:hover::after,
+.contact__line:focus-visible::after {
+  background: var(--accent);
+}
+
+.contact__socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s3);
+}
+
+.contact__note {
+  font-size: var(--t-caption);
+  color: var(--text-muted);
+}
+
+@media (min-width: 1024px) {
+  .contact__intro {
+    grid-column: 1 / span 4;
+  }
+  .contact__body {
+    grid-column: 6 / span 7;
+  }
+}
+
+/* ---- Long-form post body -------------------------------------------------- */
+
+.post h2 {
+  margin-block: var(--s5) var(--s2);
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-variation-settings: 'opsz' 72;
+  font-size: var(--t-title);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+}
+
+.post h3 {
+  margin-block: var(--s4) var(--s1);
+  font-weight: 600;
+}
+
+.post p + p,
+.post ul,
+.post ol {
+  margin-block-start: var(--lh);
+}
+
+.post ul li,
+.post ol li {
+  margin-inline-start: 1.2em;
+  list-style: disc;
+}
+
+.post ol li {
+  list-style: decimal;
+}
+
+.post blockquote {
+  margin-block: var(--s3);
+  padding-inline-start: var(--s2);
+  border-inline-start: 1px solid var(--accent);
+  color: var(--text-secondary);
+}
+
+.post code {
+  font-size: 0.92em;
+  color: var(--accent-text);
+}
+
+.post pre {
+  margin-block: var(--s3);
+  padding: var(--s2);
+  overflow-x: auto;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  font-size: var(--t-caption);
+}
+
+/* ------------------------------------------------------------ 10. COLOPHON */
+
+.colophon {
+  background: var(--surface);
+}
+
+.colophon__rule {
+  background: var(--accent);
+}
+
+.colophon__grid {
+  row-gap: var(--s4);
+}
+
+.colophon__contact {
+  grid-column: 1 / -1;
+}
+
+/* The closing line carries an address, which can be long. It is sized to hold a
+   handle or a short email on one line rather than breaking at a hyphen, and it
+   can never overflow its column. */
+.colophon__line {
+  display: inline-block;
+  font-size: clamp(1.75rem, 1rem + 3vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: -0.018em;
+  color: var(--text-primary);
+  text-decoration: none;
+  hyphens: none;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+
+.colophon__note {
+  grid-column: 1 / -1;
+  font-size: var(--t-caption);
+  line-height: var(--lh);
+  color: var(--text-muted);
+  max-width: 46ch;
+}
+
+@media (min-width: 1024px) {
+  .colophon__contact {
+    grid-column: 1 / span 7;
+  }
+  .colophon__note {
+    grid-column: 9 / span 4;
+  }
+}
+
+.footstrip {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  padding-block: var(--s3);
+  border-top: 1px solid var(--hairline);
+}
+
+.press {
+  display: flex;
+}
+
+.press span {
+  width: 24px;
+  height: 8px;
+}
+
+.folio-close {
+  /* The only centred text in the whole stylesheet. Folios are centred. */
+  text-align: center;
+  width: 100%;
+  padding-block-end: var(--s3);
+  font-size: var(--t-label);
+  letter-spacing: 0.16em;
+  color: var(--text-muted);
+}
+
+.crop {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  pointer-events: none;
+}
+.crop::before,
+.crop::after {
+  content: '';
+  position: absolute;
+  background: var(--hairline-lit);
+}
+.crop::before {
+  width: 8px;
+  height: 1px;
+  bottom: 0;
+}
+.crop::after {
+  width: 1px;
+  height: 8px;
+  bottom: 0;
+}
+.crop[data-corner='left'] {
+  left: 0;
+  bottom: 0;
+}
+.crop[data-corner='left']::after {
+  left: 0;
+}
+.crop[data-corner='right'] {
+  right: 0;
+  bottom: 0;
+}
+.crop[data-corner='right']::after {
+  right: 0;
+}
+
+/* ---------------------------------------------------- 11. THE ODOMETER FOLIO */
+
+/* A single 272px Didone numeral debossed into the left margin. An observer
+   rolls it as each entry centres, and one vermilion hairline ties the numeral
+   to the entry it names. Desktop only; the mobile layout is the fallback. */
+.odometer {
+  display: none;
+}
+
+/* Only inked while the entries are on screen: it names an entry, so it has no
+   business sitting over the masthead or the colophon. */
+.odometer[data-visible='false'] {
+  opacity: 0;
+}
+
+@media (min-width: 1024px) {
+  .odometer {
+    display: block;
+    position: fixed;
+    left: calc(var(--pad) * 0.05);
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 0;
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity var(--d2) linear;
+  }
+
+  .odometer__window {
+    height: 1em;
+    overflow: hidden;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-variation-settings: 'opsz' 40;
+    font-variant-numeric: lining-nums tabular-nums;
+    /* Sized to the margin, not to --t-folio. Two lining digits run to roughly
+       1.05em, so tying the size to --pad keeps the numeral inside its margin
+       and off the text at every viewport. */
+    font-size: min(var(--t-folio), calc(var(--pad) * 0.85));
+    line-height: 0.78;
+    letter-spacing: -0.055em;
+    color: var(--emboss);
+  }
+
+  .odometer__reel {
+    transform: translateY(calc(var(--i, 0) * -1em));
+    transition: transform var(--d4) var(--e-mech);
+  }
+
+  .odometer__reel span {
+    display: block;
+    height: 1em;
+    line-height: 0.78;
+  }
+
+  .odometer__reel span::before {
+    content: attr(data-folio);
+  }
+
+  .odometer__tie {
+    position: absolute;
+    left: 100%;
+    bottom: 0.16em;
+    height: 1px;
+    width: var(--tie, 0px);
+    background: var(--accent);
+    transition: width var(--d3) cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* Pressing `g` proves the 24px baseline actually holds. */
+.baseline-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0.4;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--hairline) 0 1px,
+    transparent 1px var(--lh)
+  );
+}
+
+/* ----------------------------------------------------------------- 12. LINKS */
+
+/* Prose links: an underline that thickens and warms. Colour lands instantly. */
+/* Inline links inside a label row still need a finger-sized target. */
+.label .link-inline {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.prose a,
+.link-inline {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.28em;
+  text-decoration-color: var(--hairline);
+}
+
+.prose a:hover,
+.prose a:focus-visible,
+.link-inline:hover,
+.link-inline:focus-visible {
+  text-decoration-thickness: 2px;
+  text-decoration-color: var(--accent-text);
+}
+
+/* Standalone links use a pseudo-element rule so it can scale from the left.
+   Arrows are typographic glyphs, never icons. */
+.link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 500;
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(50% - 0.85em);
+  height: 1px;
+  background: var(--hairline);
+  transform-origin: left;
+  transition: transform var(--d2) cubic-bezier(0.2, 0.6, 0.2, 1);
+}
+
+.link:hover::after,
+.link:focus-visible::after {
+  height: 2px;
+  background: var(--accent-text);
+}
+
+.link:active {
+  transform: translateY(0.5px);
+}
+
+.colophon__line::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.12em;
+  height: 1px;
+  background: var(--hairline);
+  transform: scaleX(1);
+  transform-origin: left;
+  transition: transform var(--d3) var(--e-geo);
+}
+.colophon__line {
+  position: relative;
+}
+.colophon__line:hover::after,
+.colophon__line:focus-visible::after {
+  background: var(--accent);
+}
+
+/* ---------------------------------------------------------------- 13. MOTION */
+
+/* Text never moves on this page. Only rules, the folio, and light. */
+
+/* Rules are drawn by default. They only start collapsed where there is script
+   to expand them again, so with JavaScript off every hairline is simply present
+   rather than stuck at zero width. Browsers that do not understand the
+   `scripting` query fall on the safe side of that choice. */
+@media (scripting: enabled) {
+  .reveal-rule {
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+
+  .reveal-rule.is-in {
+    transform: scaleX(1);
+    transition: transform 520ms var(--e-geo) var(--stagger, 0ms);
+  }
+}
+
+/* Below the tablet breakpoint every plate is permanently lit: the dim-until-
+   centred idea needs a viewport tall enough for "centred" to mean something. */
+@media (max-width: 767px) {
+  .plate::after {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --d1: 1ms;
+    --d2: 1ms;
+    --d3: 1ms;
+    --d4: 1ms;
+  }
+  .reveal-rule,
+  .reveal-rule.is-in {
+    transform: scaleX(1);
+    transition: none;
+  }
+  .plate {
+    transform: none;
+    transition: none;
+  }
+  .plate::after,
+  .plate::before {
+    transition: none;
+  }
+  .plate::after {
+    opacity: 0;
+  }
+  .plate__depth {
+    transform: none;
+  }
+  .wall__name,
+  .wall__name span {
+    transform: none;
+    transition: none;
+  }
+  .odometer__reel,
+  .odometer__tie {
+    transition: none;
+  }
+}
+
+/* -------------------------------------------------------------- 14. CONTRAST */
+
+@media (prefers-contrast: more) {
+  :root {
+    --text-secondary: #e8e4da;
+    --text-muted: #e8e4da;
+    --hairline: #43403a;
+  }
+}
+
+@media print {
+  :root {
+    --page: #fff;
+    --text-primary: #000;
+    --text-secondary: #333;
+    --text-muted: #444;
+  }
+  .runhead,
+  .odometer,
+  .skip {
+    display: none;
+  }
+}
