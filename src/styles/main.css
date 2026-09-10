@@ -261,6 +261,11 @@ h4 {
   line-height: var(--lh);
   max-width: 62ch;
   text-wrap: pretty;
+  /* Prose quotes real filenames and URLs, which are single unbreakable tokens
+     far wider than a phone. break-word only intervenes when a token would
+     otherwise overflow, so ordinary words still break on their normal
+     boundaries. Without it the token is clipped and simply unreadable. */
+  overflow-wrap: break-word;
 }
 
 .prose + .prose {

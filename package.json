@@ -17,9 +17,9 @@
     "finalize": "node scripts/colophon-weight.mjs && node scripts/csp-hashes.mjs",
     "check:functions": "tsc --noEmit --ignoreConfig --strict --allowImportingTsExtensions --target es2022 --lib es2022,dom --module esnext --moduleResolution bundler --skipLibCheck functions/api/subscribe.ts",
     "test": "node --test \"test/*.test.mjs\"",
-    "audit:mobile": "node scripts/mobile-audit.mjs",
     "deploy": "npm run build && npm run verify && wrangler pages deploy",
-    "deploy:preview": "npm run build && wrangler pages deploy --branch=preview"
+    "deploy:preview": "npm run build && wrangler pages deploy --branch=preview",
+    "audit:layout": "node scripts/mobile-audit.mjs"
   },
   "engines": {
     "node": ">=20.0.0"

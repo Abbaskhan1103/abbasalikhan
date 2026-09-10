@@ -1,7 +1,10 @@
 ---
 /**
  * A full-bleed 1px hairline with print registration ticks where it crosses the
- * page's margin lines. Decorative: hidden from assistive technology, and it
+ * page's margin lines.
+ *
+ * `data-bleed` marks it as intentionally extending past its container, so the
+ * layout audit does not report it as escaping content. Decorative: hidden from assistive technology, and it
  * draws itself in from the left once when scrolled into view.
  */
 interface Props {
@@ -19,6 +22,7 @@ const edges = ['left', 'inner-left', 'inner-right', 'right'] as const;
   class:list={['rule', 'bleed', 'reveal-rule', { 'colophon__rule': accent }]}
   style={`--stagger:${index * 60}ms`}
   aria-hidden="true"
+  data-bleed
 >
   {edges.map((edge) => <span class="rule__tick" data-edge={edge}></span>)}
 </div>

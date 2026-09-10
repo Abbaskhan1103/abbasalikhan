@@ -41,7 +41,7 @@ const { Content } = await render(project);
       rather than as type, which is a WCAG "pure decoration" case. The real
       ordinal is the visually-hidden "Entry n of m" above.
     */}
-    <p class="entry__folio display display--xl" data-folio={folio} aria-hidden="true"></p>
+    <p class="entry__folio display display--xl" data-folio={folio} data-bleed aria-hidden="true"></p>
 
     <div class="entry__titleline">
       {

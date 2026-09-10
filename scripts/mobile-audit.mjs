@@ -61,6 +61,11 @@ for (const width of WIDTHS) {
           // was 62px, so the threshold sits well clear of the optical noise.
           if (el.scrollWidth <= el.clientWidth + 8) return false;
           if (el.clientWidth === 0) return false;
+          // Intentional bleeds are declared in the markup with data-bleed, so
+          // this check stays deterministic instead of guessing. An element is
+          // skipped if it is one, or contains one, since a descendant's bleed
+          // inflates every ancestor's scrollWidth.
+          if (el.matches('[data-bleed]') || el.querySelector('[data-bleed]')) return false;
           // An absolutely-positioned pseudo-element is a deliberate overlay,
           // not escaping content: it is how a small control gets a 44px tap
           // target, and how hairlines and underlines are drawn. It inflates

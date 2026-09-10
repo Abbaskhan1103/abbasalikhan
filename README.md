@@ -373,9 +373,20 @@ that was not built.
 
 Currently zero failures and zero warnings.
 
-### Mobile
+### Layout
 
-`npm run audit:mobile` walks all eight pages at 320, 360, 375, 390, 430 and
-768px and fails on sideways scrolling, anything past the trimmed edge, tap
-targets under 44px, or text under 11px. It needs a preview server running and
-`npm install --no-save playwright-core`.
+`npm run audit:layout` walks all eight pages at 320, 360, 375, 390, 430, 768,
+900, 1100 and 1440px and fails on sideways scrolling, anything past the trimmed
+edge, tap targets under 44px, text under 11px, **content escaping its own box**,
+and **sibling elements overlapping each other**. It needs a preview server
+running and `npm install --no-save playwright-core`.
+
+The last two checks exist because a viewport-overflow test cannot see them. A
+catalogue name once overran its grid column and printed on top of the next
+column, and a filename in prose was clipped rather than wrapped: in both cases
+nothing left the viewport, so nothing was reported.
+
+Elements that overflow on purpose carry `data-bleed` in the markup (the
+full-bleed hairlines, and the folio whose accent rule runs off the trim). The
+audit skips those by name rather than by guesswork, so an unmarked overflow is
+always a real defect.
