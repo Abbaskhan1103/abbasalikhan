@@ -20,16 +20,9 @@ const graph = buildPlainGraph({
 
 <Base graph={graph} title={title} description="Subscription confirmed." noindex>
   <RunningHead />
-  <main
-    id="main"
-    class="shell"
-    style="min-height:70svh; display:grid; align-content:center; gap:var(--s3); padding-block:var(--s6);"
-  >
+  <main id="main" class="shell centered-page">
     <p class="label">{c.label}</p>
-    <h1
-      class="display display--xl"
-      style="font-size:var(--t-section); line-height:1; letter-spacing:-0.018em;"
-    >
+    <h1 class="display display--xl centered-page__title">
       {c.success}
     </h1>
     <p class="lede">{c.note}</p>

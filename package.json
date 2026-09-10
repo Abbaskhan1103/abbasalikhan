@@ -19,7 +19,9 @@
     "test": "node --test \"test/*.test.mjs\"",
     "deploy": "npm run build && npm run verify && wrangler pages deploy",
     "deploy:preview": "npm run build && wrangler pages deploy --branch=preview",
-    "audit:layout": "node scripts/mobile-audit.mjs"
+    "audit:layout": "node scripts/mobile-audit.mjs",
+    "preview:real": "node scripts/serve-with-headers.mjs",
+    "audit:csp": "node scripts/audit-csp.mjs"
   },
   "engines": {
     "node": ">=20.0.0"

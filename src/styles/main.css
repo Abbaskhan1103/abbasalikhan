@@ -1341,6 +1341,77 @@ h4 {
   }
 }
 
+/* ------------------------------------------------- 8b. NO INLINE STYLE ATTRS
+   Everything here replaces a `style="..."` attribute that used to sit in the
+   markup. A style ATTRIBUTE is governed by style-src-attr, which hashes do not
+   cover, so under this site's CSP every one of them was silently blocked in
+   production while working fine under `astro preview` (which does not apply
+   _headers at all). Keeping the markup free of them is what lets the policy
+   stay strict. */
+
+.span-full {
+  grid-column: 1 / -1;
+}
+
+/* Rules draw in with a short cascade. Discrete steps in CSS rather than a
+   computed inline delay. */
+.reveal-rule[data-stagger='1'].is-in {
+  transition-delay: 60ms;
+}
+.reveal-rule[data-stagger='2'].is-in {
+  transition-delay: 120ms;
+}
+.reveal-rule[data-stagger='3'].is-in {
+  transition-delay: 180ms;
+}
+.reveal-rule[data-stagger='4'].is-in {
+  transition-delay: 240ms;
+}
+
+/* The press bar's six swatches: the palette itself, so it belongs in CSS. */
+.press span:nth-child(1) {
+  background: var(--page);
+}
+.press span:nth-child(2) {
+  background: var(--surface-raised);
+}
+.press span:nth-child(3) {
+  background: var(--hairline);
+}
+.press span:nth-child(4) {
+  background: var(--text-muted);
+}
+.press span:nth-child(5) {
+  background: var(--text-primary);
+}
+.press span:nth-child(6) {
+  background: var(--accent);
+}
+
+/* A plate holding an image needs no padding around the well. */
+.plate__well--flush {
+  padding: 0;
+}
+
+.label--spaced {
+  margin-bottom: var(--s2);
+}
+
+/* /404/ and /thanks/: a short page whose content sits centred in the viewport. */
+.centered-page {
+  min-height: 70svh;
+  display: grid;
+  align-content: center;
+  gap: var(--s3);
+  padding-block: var(--s6);
+}
+
+.centered-page__title {
+  font-size: var(--t-section);
+  line-height: 1;
+  letter-spacing: -0.018em;
+}
+
 /* ------------------------------------------------------------- 9a. ICONOGRAPHY */
 
 /* Icons sit in the line like a letter: they take the local colour and scale

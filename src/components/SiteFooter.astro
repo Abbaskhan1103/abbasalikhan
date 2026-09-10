@@ -19,11 +19,11 @@ const press = [theme.background, '#171613', '#2a2823', '#a8a296', '#e8e4da', the
       <span class="crop" data-corner="left" aria-hidden="true"></span>
       <span class="crop" data-corner="right" aria-hidden="true"></span>
 
-      <p class="label" style="margin:0;">{fill(footer.copyright, { year })}</p>
+      <p class="label">{fill(footer.copyright, { year })}</p>
       <p class="colophon__note">{fill(sections.colophon.note, { weight, year })}</p>
 
       <span class="press" aria-hidden="true">
-        {press.map((swatch) => <span style={`background:${swatch}`}></span>)}
+        {press.map(() => <span></span>)}
       </span>
     </div>
   </div>

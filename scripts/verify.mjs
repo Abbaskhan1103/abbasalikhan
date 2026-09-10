@@ -185,6 +185,39 @@ for (const header of ['Strict-Transport-Security', 'X-Content-Type-Options', 'Re
   check(headers.includes(header), `${header} set`, `${header} missing`);
 }
 
+/* --------------------------------------------------- CSP vs what pages need */
+section('CSP against actual page content');
+{
+  const csp = /Content-Security-Policy:\s*(.+)/.exec(headers)?.[1] ?? '';
+  const styleSrc = /style-src([^;]*)/.exec(csp)?.[1] ?? '';
+  const scriptSrc = /script-src([^;]*)/.exec(csp)?.[1] ?? '';
+  const styleAttrsAllowed = /'unsafe-inline'|'unsafe-hashes'/.test(styleSrc) || /style-src-attr/.test(csp);
+  const handlersAllowed = /'unsafe-inline'|'unsafe-hashes'/.test(scriptSrc);
+
+  /*
+   * A style ATTRIBUTE is governed by style-src-attr, which hashes do NOT cover.
+   * This shipped once: 81 of them were silently blocked in production while
+   * every local check passed, because `astro preview` applies no headers.
+   */
+  const withAttrs = pages.filter((page) => /\sstyle="/.test(page.html));
+  const attrCount = withAttrs.reduce((n, page) => n + (page.html.match(/\sstyle="/g) ?? []).length, 0);
+  check(
+    styleAttrsAllowed || attrCount === 0,
+    'no inline style attributes, so the CSP needs no unsafe-hashes',
+    `${attrCount} inline style attribute(s) across ${withAttrs.length} page(s) (${withAttrs.map((p) => p.path).join(', ')}), but style-src has neither 'unsafe-inline' nor 'unsafe-hashes'. Every one of them will be BLOCKED in production. Move them into src/styles/main.css.`,
+  );
+
+  const handlers = pages.filter((page) => /\son(click|load|error|mouseover|focus|submit|change|input)="/i.test(page.html));
+  check(
+    handlersAllowed || handlers.length === 0,
+    'no inline event handlers',
+    `inline event handler(s) on ${handlers.map((p) => p.path).join(', ')} will be blocked by script-src`,
+  );
+
+  const jsUrls = pages.filter((page) => /(href|src)="javascript:/i.test(page.html));
+  check(jsUrls.length === 0, 'no javascript: URLs', `javascript: URL(s) on ${jsUrls.map((p) => p.path).join(', ')} will be blocked`);
+}
+
 /* ------------------------------------------------------------- independence */
 section('Third-party independence');
 const origins = [...html.matchAll(/https?:\/\/([a-z0-9.-]+)/gi)]

@@ -20,7 +20,7 @@ const edges = ['left', 'inner-left', 'inner-right', 'right'] as const;
 
 <div
   class:list={['rule', 'bleed', 'reveal-rule', { 'colophon__rule': accent }]}
-  style={`--stagger:${index * 60}ms`}
+  data-stagger={String(Math.min(index, 4))}
   aria-hidden="true"
   data-bleed
 >

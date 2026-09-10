@@ -18,8 +18,15 @@ const { entry } = site.sections;
 const data = project.data;
 const folio = projectIndex(position);
 
-/** A project may set its own accent; otherwise the plate wash uses the site spot. */
-const spill = data.accent ?? site.theme.accent;
+/**
+ * A project may set its own `accent`, which tints its plate wash.
+ *
+ * Emitted as a <style> ELEMENT, not a style attribute: elements are covered by
+ * the CSP's style-src hashes, attributes are not. Only rendered when a project
+ * actually overrides the accent; otherwise the CSS falls back to the site spot
+ * via var(--spill, var(--accent)).
+ */
+const spillRule = data.accent ? `#${project.id}{--spill:${data.accent}}` : null;
 
 /** "Live" while a project is still being worked on or shipped; quiet if retired. */
 const state = data.status === 'Prototype' ? 'quiet' : 'live';
@@ -27,9 +34,11 @@ const state = data.status === 'Prototype' ? 'quiet' : 'live';
 const { Content } = await render(project);
 ---
 
+{spillRule && <style is:inline set:html={spillRule} />}
+
 <Rule index={position} />
 
-<article class="section shell grid entry" id={project.id} style={`--spill:${spill}`}>
+<article class="section shell grid entry" id={project.id}>
   <div class="entry__head">
     <p class="visually-hidden">
       {fill(entry.ordinal, { n: position + 1, total })}
@@ -129,7 +138,7 @@ const { Content } = await render(project);
       <div class="plate__depth">
         {
           data.cover && data.coverAlt ? (
-            <div class="plate__well" style="padding:0">
+            <div class="plate__well plate__well--flush">
               <Picture
                 class="plate__img"
                 src={data.cover}

@@ -46,7 +46,7 @@ const labels = site.sections.project;
 const meta = site.sections.entry.meta;
 const roleValue = site.sections.entry.roleValue;
 const folio = projectIndex(index);
-const spill = data.accent ?? site.theme.accent;
+const spillRule = data.accent ? `#plate-${project.id}{--spill:${data.accent}}` : null;
 const state = data.status === 'Prototype' ? 'quiet' : 'live';
 const WEIGHT_TOKEN = '00 kB';
 
@@ -64,6 +64,7 @@ const capabilities =
   ogImage={`/og/${project.id}.png`}
   ogImageAlt={`${data.title}, ${data.tagline}. By ${site.identity.name}.`}
 >
+  {spillRule && <style is:inline set:html={spillRule} />}
   <RunningHead />
 
   <main id="main" class="page-inner">
@@ -132,10 +133,10 @@ const capabilities =
 
         {
           data.cover && data.coverAlt && (
-            <div class="plate-stage" data-plate style={`--spill:${spill}`}>
+            <div class="plate-stage" id={`plate-${project.id}`} data-plate>
               <div class="plate">
                 <div class="plate__depth">
-                  <div class="plate__well" style="padding:0">
+                  <div class="plate__well plate__well--flush">
                     <Picture
                       class="plate__img"
                       src={data.cover}
